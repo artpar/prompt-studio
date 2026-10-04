@@ -6,6 +6,12 @@ A static prompt instruction builder. The left panel is a small skill tree organi
 
 The builder supplies reusable instructions for a task the user gives to an LLM separately. Branch labels and option details are navigation aids and never enter the generated prompt.
 
+## Presets
+
+Choose a built-in preset to replace the selected checks with a named starting set. You can then toggle checks freely; the picker shows when the set has been edited. **Save as…** stores the current coherent selection under a new name in this browser. Saved presets can be applied or deleted, and built-in presets cannot be changed. The prompt preview and conflict checks use the resulting checkboxes exactly as they do for a manual selection.
+
+Built-in sets live in [docs/presets.js](docs/presets.js) as arrays of catalog IDs. The choices and primary sources behind them are recorded in [PRESET_RESEARCH.md](PRESET_RESEARCH.md). “Torvalds-inspired patch” is a researched interpretation of public kernel guidance, not an impersonation or a claim that one patch must touch one file.
+
 ## Catalog and prompt assembly
 
 Edit [docs/catalog.js](docs/catalog.js) to change the catalog. Each branch has groups, and each option has a unique ID, label, detail, and sentence bundle. The groups form a shallow visual tree. Options sharing an exclusiveGroup appear under the same question; selecting incompatible answers produces a conflict. The directionGroups map supplies the question and issue label.

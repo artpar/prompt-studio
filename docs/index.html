@@ -11,9 +11,9 @@
       :root { color-scheme: light; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 16px; background: #fff; color: #202936; --surface: #fff; --muted-surface: #f5f6f8; --line: #e1e5eb; --muted: #697586; --accent: #315cc6; }
       * { box-sizing: border-box; }
       body { margin: 0; min-width: 320px; }
-      button, input { font: inherit; }
+      button, input, select { font: inherit; }
       button { cursor: pointer; }
-      button:focus-visible, input:focus-visible { outline: 3px solid #8da4e8; outline-offset: 3px; }
+      button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #8da4e8; outline-offset: 3px; }
       .app { min-height: 100vh; display: flex; flex-direction: column; }
       .topbar { height: 66px; flex: none; display: flex; align-items: center; padding: 0 26px; background: #fff; border-bottom: 1px solid var(--line); }
       .brand { display: flex; align-items: center; gap: 10px; font-weight: 730; letter-spacing: -.025em; font-size: 1.04rem; }
@@ -22,6 +22,22 @@
       .catalog, .selection-side, .preview-side { min-width: 0; padding: 26px; background: var(--surface); }
       .catalog-inner { max-width: 740px; margin: 0 auto; }
       .intro { margin: 0 0 16px; max-width: 580px; color: var(--muted); font-size: .81rem; line-height: 1.4; }
+      .preset-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+      .preset-row label { color: #415066; font-size: .77rem; font-weight: 700; }
+      .preset-row select { flex: 1; min-width: 180px; max-width: 340px; height: 34px; padding: 0 9px; border: 1px solid #cbd3df; border-radius: 6px; background: #fff; color: #202936; font-size: .79rem; }
+      .preset-action { min-height: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: #415066; font-size: .75rem; font-weight: 620; }
+      .preset-action:hover { border-color: #aeb9d3; }
+      .preset-action:disabled { opacity: .45; cursor: default; }
+      .preset-note { min-height: 17px; margin: 0 0 11px 42px; color: var(--muted); font-size: .72rem; line-height: 1.35; }
+      .preset-dialog { width: min(360px, calc(100vw - 32px)); padding: 22px; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 18px 50px #20293624; color: #202936; }
+      .preset-dialog::backdrop { background: #20293666; }
+      .preset-dialog h2 { margin: 0 0 15px; font-size: 1rem; }
+      .preset-dialog label { display: block; margin-bottom: 5px; font-size: .78rem; font-weight: 650; }
+      .preset-dialog input { width: 100%; height: 38px; padding: 0 10px; border: 1px solid #cbd3df; border-radius: 6px; }
+      .preset-error { min-height: 17px; margin: 5px 0 0; color: #9c3535; font-size: .73rem; }
+      .preset-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+      .preset-dialog-actions button { min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 6px; background: #fff; font-size: .78rem; }
+      .preset-dialog-actions button[type="submit"] { border-color: var(--accent); background: var(--accent); color: #fff; }
       .selection-side { border-left: 1px solid var(--line); }
       .selected-panel { position: sticky; top: 26px; display: flex; flex-direction: column; height: calc(100vh - 118px); min-height: 320px; }
       .selected-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 15px; color: #202936; font-weight: 700; }
@@ -106,7 +122,7 @@
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
       @media (max-width: 1120px) { .workspace { grid-template-columns: minmax(0, 1fr) 260px; } .preview-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); } .preview-sticky { position: static; max-width: none; } .paper { min-height: 340px; max-height: none; } .prompt-body { max-height: 540px; } }
       @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; } .catalog, .preview-side { padding: 22px 20px; } .catalog-inner { max-width: none; } .selection-side { border-left: 0; border-top: 1px solid var(--line); padding: 18px 20px; } .selected-panel { position: static; height: 250px; min-height: 0; } }
-      @media (max-width: 480px) { .topbar { height: 60px; padding: 0 16px; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 16px 14px; } .intro { margin-bottom: 15px; } .tabs { gap: 15px; } .option { padding: 8px 9px; } .prompt-body { padding: 20px 18px; } }
+      @media (max-width: 480px) { .topbar { height: 60px; padding: 0 16px; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 16px 14px; } .intro { margin-bottom: 15px; } .preset-row select { min-width: 150px; } .preset-note { margin-left: 0; } .tabs { gap: 15px; } .option { padding: 8px 9px; } .prompt-body { padding: 20px 18px; } }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
     </style>
   </head>
@@ -120,6 +136,8 @@
           <div class="catalog-inner">
             <h1 class="sr-only" id="page-title">Prompt Builder</h1>
             <p class="intro">Build instructions for a task you will provide separately. Follow a branch and select the directions that matter.</p>
+            <div class="preset-row"><label for="preset-select">Preset</label><select id="preset-select" aria-describedby="preset-note"></select><button class="preset-action" id="save-preset" type="button">Save as…</button><button class="preset-action" id="delete-preset" type="button" hidden>Delete</button></div>
+            <p class="preset-note" id="preset-note"></p>
             <div class="tabs-wrap"><div class="tabs" id="tabs" role="tablist" aria-label="Prompt instruction branches"></div></div>
             <div id="tab-panel" role="tabpanel" tabindex="0"></div>
             <p class="catalog-footer">The branch names help you browse; only instruction sentences are copied.</p>
@@ -142,12 +160,14 @@
           </div>
         </aside>
       </main>
+      <dialog class="preset-dialog" id="preset-dialog" aria-labelledby="preset-dialog-title"><form id="preset-form"><h2 id="preset-dialog-title">Save current selection</h2><label for="preset-name">Preset name</label><input id="preset-name" name="name" maxlength="48" required autocomplete="off" /><p class="preset-error" id="preset-error" role="alert"></p><div class="preset-dialog-actions"><button type="button" id="cancel-preset">Cancel</button><button type="submit">Save preset</button></div></form></dialog>
     </div>
     <script src="./catalog.js"></script>
     <script src="./coherence.js"></script>
     <script src="./prompt.js"></script>
+    <script src="./presets.js"></script>
     <script>
-      const selected = new Set(['make-changes', 'inspect-relevant', 'finish-task']);
+      const selected = new Set(builtInPresets[0].ids);
       let activeTab = 0;
       const tabs = document.getElementById('tabs');
       const tabPanel = document.getElementById('tab-panel');
@@ -166,6 +186,127 @@
       const coherenceCount = document.getElementById('coherence-count');
       const coherenceNote = document.getElementById('coherence-note');
       const coherenceList = document.getElementById('coherence-list');
+      const presetSelect = document.getElementById('preset-select');
+      const presetNote = document.getElementById('preset-note');
+      const savePresetButton = document.getElementById('save-preset');
+      const deletePresetButton = document.getElementById('delete-preset');
+      const presetDialog = document.getElementById('preset-dialog');
+      const presetForm = document.getElementById('preset-form');
+      const presetName = document.getElementById('preset-name');
+      const presetError = document.getElementById('preset-error');
+      let activePresetId = builtInPresets[0].id;
+
+      function loadCustomPresets() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(presetStorageKey) || '[]');
+          if (!Array.isArray(saved)) return [];
+          const used = new Set(builtInPresets.map(preset => preset.id));
+          return saved.slice(0, 50).map(raw => {
+            const clean = cleanPreset(raw, optionById, used);
+            if (clean) used.add(clean.id);
+            return clean;
+          }).filter(Boolean);
+        } catch { return []; }
+      }
+
+      let customPresets = loadCustomPresets();
+      const allPresets = () => [...builtInPresets, ...customPresets];
+
+      function storeCustomPresets(presets) {
+        try {
+          localStorage.setItem(presetStorageKey, JSON.stringify(presets.map(({ id, name, ids }) => ({ id, name, ids }))));
+          return true;
+        } catch { return false; }
+      }
+
+      function renderPresetOptions() {
+        presetSelect.replaceChildren();
+        const custom = document.createElement('option');
+        custom.value = '';
+        custom.textContent = 'Custom selection';
+        presetSelect.append(custom);
+        for (const [label, presets] of [['Built in', builtInPresets], ['Saved here', customPresets]]) {
+          if (!presets.length) continue;
+          const group = document.createElement('optgroup');
+          group.label = label;
+          presets.forEach(preset => {
+            const option = document.createElement('option');
+            option.value = preset.id;
+            option.textContent = preset.name;
+            group.append(option);
+          });
+          presetSelect.append(group);
+        }
+      }
+
+      function updatePresetUI() {
+        const matched = findMatchingPreset(allPresets(), selected, activePresetId);
+        const base = allPresets().find(preset => preset.id === activePresetId);
+        presetSelect.value = matched?.id || '';
+        presetNote.textContent = matched ? matched.description :
+          selected.size ? base ? `Edited from ${base.name} · ${selected.size} checks` : `${selected.size} checks selected` : 'No checks selected';
+        deletePresetButton.hidden = !matched?.custom;
+        savePresetButton.disabled = !selected.size || analyzeSelection(allOptions, selected).conflicts.length > 0;
+      }
+
+      function applyPreset(preset) {
+        selected.clear();
+        preset.ids.forEach(id => selected.add(id));
+        activePresetId = preset.id;
+        updateTabCounts();
+        renderOptions();
+        renderSelected();
+        renderPreview();
+        updatePresetUI();
+      }
+
+      presetSelect.addEventListener('change', () => {
+        const preset = allPresets().find(item => item.id === presetSelect.value);
+        if (preset) applyPreset(preset);
+      });
+      savePresetButton.addEventListener('click', () => {
+        presetName.value = '';
+        presetError.textContent = '';
+        presetDialog.showModal();
+        presetName.focus();
+      });
+      document.getElementById('cancel-preset').addEventListener('click', () => presetDialog.close());
+      presetForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const name = presetName.value.trim();
+        if (!name || allPresets().some(preset => preset.name.toLowerCase() === name.toLowerCase())) {
+          presetError.textContent = name ? 'That preset name is already used.' : 'Enter a preset name.';
+          return;
+        }
+        if (customPresets.length >= 50) {
+          presetError.textContent = 'This browser has reached the 50 preset limit.';
+          return;
+        }
+        const id = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        const preset = cleanPreset({ id, name, ids: [...selected] }, optionById);
+        if (!preset || !storeCustomPresets([...customPresets, preset])) {
+          presetError.textContent = 'Could not save the preset in this browser.';
+          return;
+        }
+        customPresets.push(preset);
+        activePresetId = preset.id;
+        renderPresetOptions();
+        updatePresetUI();
+        presetDialog.close();
+      });
+      deletePresetButton.addEventListener('click', () => {
+        const preset = findMatchingPreset(allPresets(), selected, activePresetId);
+        if (!preset?.custom) return;
+        const remaining = customPresets.filter(item => item.id !== preset.id);
+        if (!storeCustomPresets(remaining)) {
+          presetNote.textContent = 'Could not delete the preset from this browser.';
+          return;
+        }
+        customPresets = remaining;
+        activePresetId = null;
+        renderPresetOptions();
+        updatePresetUI();
+      });
 
       function renderTabs() {
         tabs.replaceChildren();
@@ -228,6 +369,7 @@
         renderOptions();
         renderSelected();
         renderPreview();
+        updatePresetUI();
         const current = document.getElementById(`${fromSelectedList ? 'selected-' : ''}option-${option.id}`);
         const other = document.getElementById(`option-${option.id}`);
         if (current || other) (current || other).focus();
@@ -380,7 +522,7 @@
         copyLabel.textContent = conflicts.length ? 'Resolve conflicts' : 'Copy prompt';
       }
 
-      clearButton.addEventListener('click', () => { selected.clear(); updateTabCounts(); renderOptions(); renderSelected(); renderPreview(); });
+      clearButton.addEventListener('click', () => { selected.clear(); updateTabCounts(); renderOptions(); renderSelected(); renderPreview(); updatePresetUI(); });
       copyButton.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(getPrompt());
@@ -392,10 +534,12 @@
         }
       });
 
+      renderPresetOptions();
       renderTabs();
       renderOptions();
       renderSelected();
       renderPreview();
+      updatePresetUI();
     </script>
   </body>
 </html>

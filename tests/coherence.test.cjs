@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const context = vm.createContext({});
-for (const name of ['catalog', 'coherence', 'prompt']) {
+for (const name of ['catalog', 'coherence', 'prompt', 'presets']) {
   vm.runInContext(fs.readFileSync(path.join(root, 'docs', name + '.js'), 'utf8'), context);
 }
 const catalog = vm.runInContext('catalog', context);
@@ -14,6 +14,7 @@ const directions = vm.runInContext('directionGroups', context);
 const options = catalog.flatMap(branch => branch.options.map(option => ({ ...option, category: branch.name })));
 const analyze = ids => vm.runInContext('analyzeSelection', context)(options, new Set(ids));
 const prompt = ids => vm.runInContext('buildPrompt', context)(options, new Set(ids));
+const presets = vm.runInContext('builtInPresets', context);
 const hasConflict = (ids, dimension) => analyze(ids).conflicts.some(item => item.dimension === dimension);
 
 test('catalog branches describe prompt behavior and every option has a unique home', () => {
@@ -113,4 +114,37 @@ test('minimal incompatible set can expose a collective conflict', () => {
   ];
   assert.equal(intersect(constraints).size, 0);
   assert.equal(core(constraints).length, 3);
+});
+
+test('built-in presets refer to known checks and have no encoded conflicts', () => {
+  const known = new Set(options.map(option => option.id));
+  assert.ok(presets.some(preset => preset.id === 'torvalds-inspired'));
+  assert.equal(new Set(presets.map(preset => preset.id)).size, presets.length);
+  for (const preset of presets) {
+    assert.ok(preset.name && preset.description && preset.ids.length);
+    assert.equal(new Set(preset.ids).size, preset.ids.length, preset.name);
+    for (const id of preset.ids) assert.ok(known.has(id), `${preset.name}: ${id}`);
+    assert.equal(analyze(preset.ids).conflicts.length, 0, preset.name);
+    assert.ok(prompt(preset.ids).length > 0);
+  }
+});
+
+test('Torvalds-inspired preset means one problem, not one file or one edit', () => {
+  const preset = presets.find(item => item.id === 'torvalds-inspired');
+  assert.ok(preset.ids.includes('one-problem'));
+  assert.ok(preset.ids.includes('explain-why'));
+  assert.ok(!preset.ids.includes('one-change'));
+  assert.ok(!preset.ids.includes('one-file'));
+});
+
+test('custom presets are cleaned and exact selection matching honors the active preset', () => {
+  const clean = vm.runInContext('cleanPreset', context);
+  const match = vm.runInContext('findMatchingPreset', context);
+  const valid = new Set(options.map(option => option.id));
+  const saved = clean({ id: 'custom-example', name: '  My preset  ', ids: ['make-changes', 'make-changes', 'missing'] }, valid);
+  assert.equal(saved.name, 'My preset');
+  assert.deepEqual(Array.from(saved.ids), ['make-changes']);
+  assert.equal(match([saved], new Set(['make-changes']), saved.id).id, saved.id);
+  assert.equal(match([saved], new Set(['make-changes', 'finish-task'])), null);
+  assert.equal(clean({ id: 'invalid', name: 'X', ids: ['make-changes'] }, valid), null);
 });
