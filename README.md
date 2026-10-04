@@ -4,6 +4,8 @@ Live site: [Prompt Studio](https://artpar.github.io/prompt-studio/)
 
 A static, three-panel instruction builder for software development prompts. Browse checkboxes on the left, review selected instructions grouped by their source tab in the middle, and copy the generated prompt from the right. Checked options remain in their original tabs as well as the middle panel.
 
+The prompt preview displays exactly the text copied by **Copy prompt**. Selection counts, status, and word count sit outside the prompt area.
+
 ## Customize the catalog
 
 Edit [`docs/catalog.js`](docs/catalog.js). Each category becomes a tab. Each option becomes a checkbox, and its `sentences` value becomes a paragraph in the copied prompt. Keep option `id` values unique. The initial selections are set in `docs/index.html` in the `selected` set.

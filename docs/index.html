@@ -90,21 +90,11 @@
       .coherence-list li { margin: 4px 0; }
       .coherence-list strong { display: block; }
       .paper { display: flex; flex-direction: column; min-height: 320px; max-height: calc(100vh - 265px); background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 2px 8px #20293608; overflow: hidden; }
-      .paper-top { flex: none; display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); }
-      .paper-title { display: flex; align-items: center; gap: 9px; color: #475467; font-size: .72rem; font-weight: 700; letter-spacing: .04em; }
-      .paper-title span { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
-      .word-count { color: #9aa6b3; font-size: .78rem; }
-      .prompt-body { flex: 1; overflow-y: auto; padding: 21px 20px 28px; scrollbar-width: thin; }
-      .prompt-block { margin: 0 0 21px; }
-      .prompt-block:last-child { margin-bottom: 0; }
-      .prompt-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: .67rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-      .prompt-block p { margin: 0; color: #344054; font-size: .9rem; line-height: 1.58; white-space: pre-wrap; }
-      .empty { height: 100%; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #8291a0; }
-      .empty-symbol { width: 56px; height: 56px; border: 1px dashed #c5ccda; border-radius: 14px; display: grid; place-items: center; color: #7890c6; font-size: 1.65rem; margin-bottom: 17px; }
-      .empty strong { color: #425367; font-size: 1rem; }
-      .empty p { max-width: 230px; font-size: .86rem; line-height: 1.5; margin: 7px 0 0; }
+      .prompt-body { flex: 1; overflow-y: auto; padding: 21px 20px 28px; color: #344054; font-size: .9rem; line-height: 1.58; white-space: pre-wrap; scrollbar-width: thin; }
       .preview-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; }
+      .preview-metrics { display: flex; align-items: center; gap: 5px; }
       .selection-count { color: var(--muted); font-size: .77rem; }
+      .metric-divider, .word-count { color: #929baa; font-size: .77rem; }
       .copy { display: inline-flex; justify-content: center; align-items: center; gap: 9px; border: 0; border-radius: 7px; background: var(--accent); color: white; min-height: 38px; padding: 0 15px; font-weight: 670; font-size: .8rem; transition: background .18s, transform .18s; }
       .copy:hover { background: #244da9; transform: translateY(-1px); }
       .copy:disabled { background: #aebbc5; box-shadow: none; cursor: default; transform: none; }
@@ -112,7 +102,7 @@
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
       @media (max-width: 1120px) { .workspace { grid-template-columns: minmax(0, 1fr) 260px; } .preview-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); } .preview-sticky { position: static; max-width: none; } .paper { min-height: 340px; max-height: none; } .prompt-body { max-height: 540px; } }
       @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; } .catalog, .preview-side { padding: 22px 20px; } .catalog-inner { max-width: none; } .selection-side { border-left: 0; border-top: 1px solid var(--line); padding: 18px 20px; } .selected-panel { position: static; height: 250px; min-height: 0; } }
-      @media (max-width: 480px) { .topbar { height: 60px; padding: 0 16px; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 16px 14px; } .intro { margin-bottom: 15px; } .tabs { gap: 15px; } .option { padding: 8px 9px; } .prompt-body { padding: 20px 18px; } .paper-top { padding: 14px 18px; } }
+      @media (max-width: 480px) { .topbar { height: 60px; padding: 0 16px; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 16px 14px; } .intro { margin-bottom: 15px; } .tabs { gap: 15px; } .option { padding: 8px 9px; } .prompt-body { padding: 20px 18px; } }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
     </style>
   </head>
@@ -141,11 +131,10 @@
               <button class="clear" id="clear" type="button">Clear all</button>
             </div>
             <div class="paper">
-              <div class="paper-top"><div class="paper-title"><span aria-hidden="true"></span> GENERATED PROMPT</div><div class="word-count" id="word-count">0 words</div></div>
-              <div class="prompt-body" id="prompt-body" aria-live="polite"></div>
+              <div class="prompt-body" id="prompt-body" role="document" aria-label="Generated prompt" aria-live="polite"></div>
             </div>
             <div class="coherence" id="coherence" aria-live="polite"><div class="coherence-title"><strong id="coherence-title">Checking selection</strong><span id="coherence-count"></span></div><p class="coherence-note" id="coherence-note"></p><ul class="coherence-list" id="coherence-list"></ul></div>
-            <div class="preview-actions"><span class="selection-count" id="selection-count">0 selected</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span id="copy-label">Copy prompt</span></button></div>
+            <div class="preview-actions"><div class="preview-metrics"><span class="selection-count" id="selection-count">0 selected</span><span class="metric-divider" aria-hidden="true">·</span><span class="word-count" id="word-count">0 words</span></div><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span id="copy-label">Copy prompt</span></button></div>
           </div>
         </aside>
       </main>
@@ -376,25 +365,7 @@
         const options = getSelectedOptions();
         const prompt = getPrompt();
         const { conflicts } = renderCoherence(options);
-        promptBody.replaceChildren();
-        if (!options.length) {
-          const empty = document.createElement('div');
-          empty.className = 'empty';
-          empty.innerHTML = '<div class="empty-symbol" aria-hidden="true">＋</div><strong>Your prompt starts here</strong><p>Select an instruction on the left to build your prompt.</p>';
-          promptBody.append(empty);
-        } else {
-          options.forEach(option => {
-            const block = document.createElement('div');
-            block.className = 'prompt-block';
-            const label = document.createElement('span');
-            label.className = 'prompt-label';
-            label.textContent = option.label;
-            const text = document.createElement('p');
-            text.textContent = option.sentences;
-            block.append(label, text);
-            promptBody.append(block);
-          });
-        }
+        promptBody.textContent = prompt;
         const words = prompt.trim() ? prompt.trim().split(/\s+/).length : 0;
         wordCount.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
         selectionCount.textContent = `${options.length} ${options.length === 1 ? 'instruction' : 'instructions'} selected`;
