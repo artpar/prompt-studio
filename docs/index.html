@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101a2c" />
+    <meta name="description" content="Build a clear LLM prompt by choosing the instructions you need." />
+    <title>Prompt Builder</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23101a2c'/%3E%3Cpath d='M18 19h28M18 31h18M18 43h28' stroke='%23a7e1ed' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <style>
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 16px; background: #e9edf2; color: #172338; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+      button:focus-visible, input:focus-visible { outline: 3px solid #48a9bc; outline-offset: 3px; }
+      .app { min-height: 100vh; display: flex; flex-direction: column; }
+      .topbar { height: 76px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(20px, 3vw, 48px); background: #101a2c; color: #fff; border-bottom: 1px solid #2d3a4e; }
+      .brand { display: flex; align-items: center; gap: 13px; font-weight: 740; letter-spacing: -.035em; font-size: 1.25rem; }
+      .brand-mark { width: 34px; height: 34px; border: 1px solid #588999; border-radius: 10px; display: grid; place-items: center; color: #a7e1ed; font-size: 1.25rem; font-weight: 600; line-height: 1; }
+      .top-note { color: #afbac8; font-size: .875rem; letter-spacing: .01em; }
+      .workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(410px, 1.15fr) minmax(240px, .48fr) minmax(390px, 1fr); }
+      .catalog { padding: clamp(18px, 2.3vw, 34px); background: #f7f9fb; min-width: 0; }
+      .catalog-inner { max-width: 740px; margin: 0 auto; }
+      .intro { margin: 0 0 16px; max-width: 580px; color: #617084; font-size: .83rem; line-height: 1.4; }
+      .selection-side { min-width: 0; padding: 24px 12px; background: #edf5f7; border-left: 1px solid #d8e0e8; }
+      .selected-panel { position: sticky; top: 16px; display: flex; flex-direction: column; height: calc(100vh - 110px); min-height: 320px; padding: 12px; background: #e9f4f6; border: 1px solid #bdd9df; border-radius: 11px; box-shadow: 0 7px 20px #182c4012; }
+      .selected-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 9px; color: #24596a; font-size: .8rem; font-weight: 760; }
+      .selected-head h2 { margin: 0; font-size: .88rem; letter-spacing: -.02em; }
+      .selected-head span { color: #668a94; font-weight: 600; }
+      .selected-list { display: grid; align-content: start; gap: 7px; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+      .selected-empty { margin: 0; color: #668391; font-size: .76rem; }
+      .selected-group { min-width: 0; }
+      .selected-group + .selected-group { border-top: 1px solid #cbdfe5; padding-top: 7px; }
+      .selected-group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 0 2px; color: #55737e; }
+      .selected-group-head h3 { margin: 0; font-size: .69rem; font-weight: 700; letter-spacing: 0; line-height: 1.2; }
+      .selected-group-head span { flex: none; font-size: .66rem; font-weight: 650; color: #8199a1; }
+      .selected-group-items { display: grid; gap: 1px; }
+      .selected-list .option { grid-template-columns: 16px minmax(0, 1fr); gap: 7px; align-items: center; min-height: 26px; padding: 3px 2px; border: 0; border-radius: 4px; background: transparent; box-shadow: none; }
+      .selected-list .option:hover { background: #daedf1; border: 0; box-shadow: none; }
+      .selected-list .option:has(input:checked) { border: 0; background: transparent; box-shadow: none; }
+      .selected-list .option:has(input:checked):hover { background: #daedf1; }
+      .selected-list .option strong { font-size: .76rem; font-weight: 650; line-height: 1.2; }
+      .selected-list .option input { width: 15px; height: 15px; margin: 0; }
+      .selected-list .option input:checked::after { width: 7px; height: 4px; }
+      .tabs-wrap { overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid #d5dce5; scrollbar-width: thin; scrollbar-color: #bfd0d9 transparent; }
+      .tabs-wrap::-webkit-scrollbar { height: 5px; }
+      .tabs-wrap::-webkit-scrollbar-thumb { background: #bfd0d9; border-radius: 5px; }
+      .tabs { display: flex; width: max-content; gap: 18px; }
+      .tab { position: relative; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: #6c7a8d; font-weight: 650; font-size: .82rem; padding: 0 2px 10px; white-space: nowrap; }
+      .tab-count { display: inline-grid; place-items: center; width: 18px; height: 18px; border: 1px solid #cbd6dd; border-radius: 50%; color: #8493a2; background: #f5f8fa; font-size: .65rem; font-weight: 760; line-height: 1; }
+      .tab-count.has-selection { border-color: #87b7c2; color: #146d82; background: #e3f3f6; }
+      .tab[aria-selected="true"] { color: #182f45; }
+      .tab[aria-selected="true"] .tab-count.has-selection { border-color: #147c94; color: #fff; background: #147c94; }
+      .tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #177c94; border-radius: 3px 3px 0 0; }
+      .option-group { margin: 12px 0; }
+      .group-title { margin: 0 0 6px; color: #728398; font-size: .67rem; font-weight: 770; letter-spacing: .1em; text-transform: uppercase; }
+      .options { display: grid; gap: 5px; }
+      .direction-set { display: grid; gap: 4px; padding: 7px 9px 9px; border: 1px solid #d4e2e8; border-radius: 8px; background: #eef5f8; }
+      .direction-set-title { color: #617986; font-size: .68rem; font-weight: 720; line-height: 1.2; }
+      .direction-set .option { padding: 7px 9px; box-shadow: none; }
+      .direction-set .option strong { font-size: .8rem; }
+      .option { position: relative; display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: start; padding: 9px 11px; border: 1px solid #dbe2e9; border-radius: 8px; background: #fff; box-shadow: 0 1px 2px #182c4008; transition: border-color .18s, box-shadow .18s; cursor: pointer; }
+      .option:hover { border-color: #9cbcc5; box-shadow: 0 3px 9px #182c400d; }
+      .option:has(input:checked) { border-color: #66aab9; background: #f3fbfc; box-shadow: 0 0 0 1px #66aab933; }
+      .option input { appearance: none; width: 17px; height: 17px; margin: 1px 0 0; border: 1.5px solid #9baab8; border-radius: 4px; background: #fff; display: grid; place-items: center; }
+      .option input:checked { border-color: #147c94; background: #147c94; }
+      .option input:checked::after { content: ""; width: 8px; height: 4px; border-left: 2px solid white; border-bottom: 2px solid white; transform: translateY(-1px) rotate(-45deg); }
+      .option strong { display: block; font-size: .83rem; color: #1b2b3e; line-height: 1.26; }
+      .option small { display: block; margin-top: 2px; color: #67778a; font-size: .73rem; line-height: 1.3; }
+      .catalog-footer { margin-top: 13px; color: #8b97a5; font-size: .73rem; line-height: 1.4; }
+      .preview-side { min-width: 0; background: #e8edf2; border-left: 1px solid #d8e0e8; padding: clamp(20px, 2.5vw, 42px); }
+      .preview-sticky { position: sticky; top: 34px; max-width: 680px; margin: 0 auto; }
+      .preview-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+      .preview-head h2 { font-size: 1.28rem; letter-spacing: -.035em; margin: 0 0 4px; }
+      .preview-head p { margin: 0; color: #738293; font-size: .86rem; }
+      .clear { border: 0; background: none; color: #587084; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; padding: 5px 0; white-space: nowrap; }
+      .clear:hover { color: #126f87; }
+      .clear:disabled { opacity: .4; cursor: default; }
+      .coherence { margin-bottom: 12px; padding: 11px 13px; border: 1px solid #b9d9ca; border-radius: 10px; background: #f0faf4; color: #25583b; }
+      .coherence.has-cautions { border-color: #e2cf9a; background: #fffaf0; color: #725715; }
+      .coherence.has-conflicts { border-color: #e5aaa6; background: #fff3f2; color: #8c332e; }
+      .coherence-title { display: flex; justify-content: space-between; gap: 12px; font-size: .83rem; font-weight: 760; }
+      .coherence-title span { font-size: .72rem; font-weight: 650; }
+      .coherence-note { margin: 3px 0 0; font-size: .72rem; line-height: 1.4; color: #687786; }
+      .coherence-list { margin: 7px 0 0; padding-left: 18px; max-height: 138px; overflow-y: auto; font-size: .75rem; line-height: 1.4; }
+      .coherence-list li { margin: 4px 0; }
+      .coherence-list strong { display: block; }
+      .paper { display: flex; flex-direction: column; min-height: min(520px, calc(100vh - 375px)); max-height: calc(100vh - 375px); background: #fff; border: 1px solid #dce3ea; border-radius: 15px; box-shadow: 0 18px 50px #172d4212, 0 2px 8px #172d4209; overflow: hidden; }
+      .paper-top { flex: none; display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; border-bottom: 1px solid #edf0f3; }
+      .paper-title { display: flex; align-items: center; gap: 9px; color: #405266; font-size: .82rem; font-weight: 700; letter-spacing: .03em; }
+      .paper-title span { width: 7px; height: 7px; border-radius: 50%; background: #5baabd; }
+      .word-count { color: #9aa6b3; font-size: .78rem; }
+      .prompt-body { flex: 1; overflow-y: auto; padding: 29px 32px 40px; scrollbar-width: thin; }
+      .prompt-block { margin: 0 0 27px; }
+      .prompt-block:last-child { margin-bottom: 0; }
+      .prompt-label { display: block; margin-bottom: 9px; color: #889aab; font-size: .72rem; font-weight: 760; text-transform: uppercase; letter-spacing: .13em; }
+      .prompt-block p { margin: 0; color: #26394c; font-size: .98rem; line-height: 1.75; white-space: pre-wrap; }
+      .empty { height: 100%; min-height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #8291a0; }
+      .empty-symbol { width: 56px; height: 56px; border: 1px dashed #c5d1da; border-radius: 14px; display: grid; place-items: center; color: #76aab7; font-size: 1.65rem; margin-bottom: 17px; }
+      .empty strong { color: #425367; font-size: 1rem; }
+      .empty p { max-width: 230px; font-size: .86rem; line-height: 1.5; margin: 7px 0 0; }
+      .preview-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 17px; }
+      .selection-count { color: #66798b; font-size: .86rem; }
+      .copy { display: inline-flex; justify-content: center; align-items: center; gap: 9px; border: 0; border-radius: 9px; background: #137b92; color: white; min-height: 43px; padding: 0 18px; font-weight: 680; font-size: .89rem; box-shadow: 0 4px 12px #137b9229; transition: background .18s, transform .18s; }
+      .copy:hover { background: #0e657a; transform: translateY(-1px); }
+      .copy:disabled { background: #aebbc5; box-shadow: none; cursor: default; transform: none; }
+      .copy svg { width: 16px; height: 16px; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+      @media (max-width: 1120px) { .workspace { grid-template-columns: minmax(0, 1fr) 260px; } .preview-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid #d8e0e8; } .preview-sticky { position: static; max-width: none; } .paper { min-height: 340px; max-height: none; } .prompt-body { max-height: 540px; } }
+      @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; } .catalog, .preview-side { padding: 22px 20px; } .catalog-inner { max-width: none; } .selection-side { border-left: 0; border-top: 1px solid #d8e0e8; padding: 14px 20px; } .selected-panel { position: static; height: 250px; min-height: 0; } }
+      @media (max-width: 480px) { .topbar { height: 64px; padding: 0 19px; } .top-note { display: none; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 12px 14px; } .intro { margin-bottom: 15px; } .tabs { gap: 15px; } .option { padding: 8px 9px; } .prompt-body { padding: 25px 22px; } .paper-top { padding: 16px 20px; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark" aria-hidden="true">≡</span><span>Prompt Builder</span></div>
+        <span class="top-note">Build better coding prompts</span>
+      </header>
+      <main class="workspace">
+        <section class="catalog" aria-labelledby="page-title">
+          <div class="catalog-inner">
+            <h1 class="sr-only" id="page-title">Prompt Builder</h1>
+            <p class="intro">Choose the action, scope, and engineering lenses for your coding prompt. A coherence check flags conflicting combinations.</p>
+            <div class="tabs-wrap"><div class="tabs" id="tabs" role="tablist" aria-label="Instruction categories"></div></div>
+            <div id="tab-panel" role="tabpanel" tabindex="0"></div>
+            <p class="catalog-footer">Each choice adds a ready-to-use set of sentences to your prompt.</p>
+          </div>
+        </section>
+        <aside class="selection-side" aria-labelledby="selected-heading">
+          <div class="selected-panel"><div class="selected-head"><h2 id="selected-heading">Selected instructions</h2><span id="selected-panel-count">0 selected</span></div><div class="selected-list" id="selected-list"></div></div>
+        </aside>
+        <aside class="preview-side" aria-labelledby="preview-title">
+          <div class="preview-sticky">
+            <div class="preview-head">
+              <div><h2 id="preview-title">Prompt preview</h2><p id="preview-subtitle">Ready to paste into your LLM.</p></div>
+              <button class="clear" id="clear" type="button">Clear all</button>
+            </div>
+            <div class="coherence" id="coherence" aria-live="polite"><div class="coherence-title"><strong id="coherence-title">Checking selection</strong><span id="coherence-count"></span></div><p class="coherence-note" id="coherence-note"></p><ul class="coherence-list" id="coherence-list"></ul></div>
+            <div class="paper">
+              <div class="paper-top"><div class="paper-title"><span aria-hidden="true"></span> GENERATED PROMPT</div><div class="word-count" id="word-count">0 words</div></div>
+              <div class="prompt-body" id="prompt-body" aria-live="polite"></div>
+            </div>
+            <div class="preview-actions"><span class="selection-count" id="selection-count">0 selected</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span id="copy-label">Copy prompt</span></button></div>
+          </div>
+        </aside>
+      </main>
+    </div>
+    <script src="./catalog.js"></script>
+    <script src="./coherence.js"></script>
+    <script>
+      const selected = new Set(['make-changes', 'inspect-codebase', 'evidence-check']);
+      let activeTab = 0;
+      const tabs = document.getElementById('tabs');
+      const tabPanel = document.getElementById('tab-panel');
+      const promptBody = document.getElementById('prompt-body');
+      const wordCount = document.getElementById('word-count');
+      const selectionCount = document.getElementById('selection-count');
+      const copyButton = document.getElementById('copy');
+      const copyLabel = document.getElementById('copy-label');
+      const clearButton = document.getElementById('clear');
+      const allOptions = catalog.flatMap(category => category.options.map(option => ({ ...option, category: category.name })));
+      const optionById = new Map(allOptions.map(option => [option.id, option]));
+      const selectedList = document.getElementById('selected-list');
+      const selectedPanelCount = document.getElementById('selected-panel-count');
+      const coherencePanel = document.getElementById('coherence');
+      const coherenceTitle = document.getElementById('coherence-title');
+      const coherenceCount = document.getElementById('coherence-count');
+      const coherenceNote = document.getElementById('coherence-note');
+      const coherenceList = document.getElementById('coherence-list');
+      const previewSubtitle = document.getElementById('preview-subtitle');
+
+      function renderTabs() {
+        tabs.replaceChildren();
+        catalog.forEach((category, index) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'tab';
+          button.id = `tab-${index}`;
+          button.role = 'tab';
+          button.setAttribute('aria-controls', 'tab-panel');
+          button.setAttribute('aria-selected', String(index === activeTab));
+          button.tabIndex = index === activeTab ? 0 : -1;
+          const name = document.createElement('span');
+          name.textContent = category.name;
+          const count = document.createElement('span');
+          count.className = 'tab-count';
+          count.id = `tab-count-${index}`;
+          count.setAttribute('aria-hidden', 'true');
+          button.append(name, count);
+          button.addEventListener('click', () => setActiveTab(index, true));
+          tabs.append(button);
+        });
+        updateTabCounts();
+      }
+
+      function updateTabCounts() {
+        catalog.forEach((category, index) => {
+          const count = category.options.filter(option => selected.has(option.id)).length;
+          const badge = document.getElementById(`tab-count-${index}`);
+          badge.textContent = String(count);
+          badge.classList.toggle('has-selection', count > 0);
+          document.getElementById(`tab-${index}`).setAttribute('aria-label', `${category.name}, ${count} selected`);
+        });
+      }
+
+      function setActiveTab(index, focus = false) {
+        activeTab = (index + catalog.length) % catalog.length;
+        renderTabs();
+        renderOptions();
+        if (focus) document.getElementById(`tab-${activeTab}`).focus();
+      }
+
+      tabs.addEventListener('keydown', event => {
+        const current = document.activeElement;
+        if (current?.getAttribute('role') !== 'tab') return;
+        let next;
+        if (event.key === 'ArrowRight') next = activeTab + 1;
+        if (event.key === 'ArrowLeft') next = activeTab - 1;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = catalog.length - 1;
+        if (next === undefined) return;
+        event.preventDefault();
+        setActiveTab(next, true);
+      });
+
+      function changeSelection(option, checked, fromSelectedList = false) {
+        if (checked) selected.add(option.id);
+        else selected.delete(option.id);
+        updateTabCounts();
+        renderOptions();
+        renderSelected();
+        renderPreview();
+        const current = document.getElementById(`${fromSelectedList ? 'selected-' : ''}option-${option.id}`);
+        const other = document.getElementById(`option-${option.id}`);
+        if (current || other) (current || other).focus();
+        else document.getElementById(`tab-${activeTab}`).focus();
+      }
+
+      function makeOption(option, compact = false) {
+        const label = document.createElement('label');
+        label.className = 'option';
+        const input = document.createElement('input');
+        input.id = `${compact ? 'selected-' : ''}option-${option.id}`;
+        input.type = 'checkbox';
+        input.value = option.id;
+        input.checked = selected.has(option.id);
+        input.addEventListener('change', () => changeSelection(option, input.checked, compact));
+        const copy = document.createElement('span');
+        const name = document.createElement('strong');
+        name.textContent = option.label;
+        copy.append(name);
+        if (!compact) {
+          const detail = document.createElement('small');
+          detail.textContent = option.detail;
+          copy.append(detail);
+        }
+        label.append(input, copy);
+        return label;
+      }
+
+      function renderSelected() {
+        selectedList.replaceChildren();
+        const options = getSelectedOptions();
+        selectedPanelCount.textContent = `${options.length} selected`;
+        if (!options.length) {
+          const empty = document.createElement('p');
+          empty.className = 'selected-empty';
+          empty.textContent = 'Pick a checkbox below to start.';
+          selectedList.append(empty);
+        } else {
+          catalog.forEach((category, index) => {
+            const selectedHere = category.options.filter(option => selected.has(option.id));
+            if (!selectedHere.length) return;
+            const section = document.createElement('section');
+            section.className = 'selected-group';
+            const heading = document.createElement('div');
+            heading.className = 'selected-group-head';
+            const title = document.createElement('h3');
+            title.id = `selected-group-${index}`;
+            title.textContent = category.name;
+            const count = document.createElement('span');
+            count.textContent = String(selectedHere.length);
+            heading.append(title, count);
+            section.setAttribute('aria-labelledby', title.id);
+            const items = document.createElement('div');
+            items.className = 'selected-group-items';
+            selectedHere.forEach(option => items.append(makeOption(optionById.get(option.id), true)));
+            section.append(heading, items);
+            selectedList.append(section);
+          });
+        }
+      }
+
+      function renderOptions() {
+        const category = catalog[activeTab];
+        tabPanel.setAttribute('aria-labelledby', `tab-${activeTab}`);
+        tabPanel.replaceChildren();
+        const groups = new Map();
+        category.options.forEach(option => {
+          const group = option.group || 'Core';
+          if (!groups.has(group)) groups.set(group, []);
+          groups.get(group).push(option);
+        });
+        groups.forEach((options, group) => {
+          const section = document.createElement('section');
+          section.className = 'option-group';
+          const list = document.createElement('div');
+          list.className = 'options';
+          const directions = new Map();
+          options.forEach(option => {
+            if (!option.exclusiveGroup) return;
+            if (!directions.has(option.exclusiveGroup)) directions.set(option.exclusiveGroup, []);
+            directions.get(option.exclusiveGroup).push(option);
+          });
+          const hasStandaloneOptions = options.some(option => !option.exclusiveGroup || directions.get(option.exclusiveGroup).length < 2);
+          if (hasStandaloneOptions && group !== 'Core') {
+            const groupTitle = document.createElement('h2');
+            groupTitle.className = 'group-title';
+            groupTitle.textContent = group;
+            section.append(groupTitle);
+          }
+          const rendered = new Set();
+          options.forEach(option => {
+            const peers = directions.get(option.exclusiveGroup);
+            if (!peers || peers.length < 2) {
+              list.append(makeOption(optionById.get(option.id)));
+              return;
+            }
+            if (rendered.has(option.exclusiveGroup)) return;
+            rendered.add(option.exclusiveGroup);
+            const sublist = document.createElement('div');
+            sublist.className = 'direction-set';
+            sublist.setAttribute('role', 'group');
+            const direction = directionGroups[option.exclusiveGroup];
+            sublist.setAttribute('aria-label', direction?.question || `${group} directions`);
+            const subtitle = document.createElement('div');
+            subtitle.className = 'direction-set-title';
+            subtitle.textContent = direction?.question || 'Choose a direction';
+            sublist.append(subtitle);
+            peers.forEach(peer => sublist.append(makeOption(optionById.get(peer.id))));
+            list.append(sublist);
+          });
+          section.append(list);
+          tabPanel.append(section);
+        });
+      }
+
+      function getSelectedOptions() { return allOptions.filter(option => selected.has(option.id)); }
+      function getPrompt() { return getSelectedOptions().map(option => option.sentences).join('\n\n'); }
+
+      function renderCoherence(options) {
+        const result = analyzeSelection(allOptions, selected);
+        const { conflicts, cautions } = result;
+        coherencePanel.className = `coherence${conflicts.length ? ' has-conflicts' : cautions.length ? ' has-cautions' : ''}`;
+        coherenceTitle.textContent = conflicts.length ? 'Conflicting instructions' : cautions.length ? 'Review task coherence' : options.length ? 'No modeled conflicts found' : 'Start with a choice';
+        coherenceCount.textContent = conflicts.length ? `${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}` : cautions.length ? `${cautions.length} caution${cautions.length === 1 ? '' : 's'}` : options.length ? 'Ready to copy' : '';
+        coherenceNote.textContent = conflicts.length ? 'Resolve the competing requests below before copying.' : 'Checks use catalog metadata; review the prompt for task-specific fit.';
+        previewSubtitle.textContent = conflicts.length ? 'Resolve conflicts before copying.' : cautions.length ? 'Review cautions before copying.' : 'Ready to paste into your LLM.';
+        coherenceList.replaceChildren();
+        [...conflicts, ...cautions].forEach(issue => {
+          const item = document.createElement('li');
+          const title = document.createElement('strong');
+          title.textContent = issue.title;
+          const detail = document.createElement('span');
+          detail.textContent = issue.detail;
+          item.append(title, detail);
+          coherenceList.append(item);
+        });
+        return result;
+      }
+
+      function renderPreview() {
+        const options = getSelectedOptions();
+        const prompt = getPrompt();
+        const { conflicts } = renderCoherence(options);
+        promptBody.replaceChildren();
+        if (!options.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.innerHTML = '<div class="empty-symbol" aria-hidden="true">＋</div><strong>Your prompt starts here</strong><p>Select an instruction on the left to build your prompt.</p>';
+          promptBody.append(empty);
+        } else {
+          options.forEach(option => {
+            const block = document.createElement('div');
+            block.className = 'prompt-block';
+            const label = document.createElement('span');
+            label.className = 'prompt-label';
+            label.textContent = option.label;
+            const text = document.createElement('p');
+            text.textContent = option.sentences;
+            block.append(label, text);
+            promptBody.append(block);
+          });
+        }
+        const words = prompt.trim() ? prompt.trim().split(/\s+/).length : 0;
+        wordCount.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
+        selectionCount.textContent = `${options.length} ${options.length === 1 ? 'instruction' : 'instructions'} selected`;
+        copyButton.disabled = !options.length || conflicts.length > 0;
+        clearButton.disabled = !options.length;
+        copyLabel.textContent = conflicts.length ? 'Resolve conflicts' : 'Copy prompt';
+      }
+
+      clearButton.addEventListener('click', () => { selected.clear(); updateTabCounts(); renderOptions(); renderSelected(); renderPreview(); });
+      copyButton.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(getPrompt());
+          copyLabel.textContent = 'Copied';
+          window.setTimeout(() => { copyLabel.textContent = 'Copy prompt'; }, 2200);
+        } catch {
+          copyLabel.textContent = 'Copy failed';
+          window.setTimeout(() => { copyLabel.textContent = 'Copy prompt'; }, 2200);
+        }
+      });
+
+      renderTabs();
+      renderOptions();
+      renderSelected();
+      renderPreview();
+    </script>
+  </body>
+</html>
