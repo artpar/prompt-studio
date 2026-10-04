@@ -71,18 +71,22 @@
       .preview-side { border-left: 1px solid var(--line); }
       .preview-sticky { position: sticky; top: 26px; max-width: 680px; margin: 0 auto; }
       .preview-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
-      .preview-head h2 { font-size: .96rem; letter-spacing: -.02em; margin: 0 0 3px; }
-      .preview-head p { margin: 0; color: var(--muted); font-size: .75rem; }
+      .preview-head h2 { font-size: .96rem; letter-spacing: -.02em; margin: 0; }
       .clear { border: 0; background: none; color: var(--muted); font-size: .75rem; text-decoration: underline; text-underline-offset: 3px; padding: 5px 0; white-space: nowrap; }
       .clear:hover { color: var(--accent); }
       .clear:disabled { opacity: .4; cursor: default; }
-      .coherence { margin-bottom: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 7px; background: #f7f8fa; color: #394354; }
-      .coherence.has-cautions { border-color: #e2cf9a; background: #fffaf0; color: #725715; }
-      .coherence.has-conflicts { border-color: #e5aaa6; background: #fff3f2; color: #8c332e; }
-      .coherence-title { display: flex; justify-content: space-between; gap: 12px; font-size: .83rem; font-weight: 760; }
-      .coherence-title span { font-size: .72rem; font-weight: 650; }
-      .coherence-note { margin: 3px 0 0; font-size: .72rem; line-height: 1.4; color: var(--muted); }
-      .coherence-list { margin: 7px 0 0; padding-left: 18px; max-height: 138px; overflow-y: auto; font-size: .75rem; line-height: 1.4; }
+      .coherence { margin-top: 12px; padding: 9px 2px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: #475467; }
+      .coherence.has-cautions { color: #8a620f; }
+      .coherence.has-conflicts { color: #9c3535; }
+      .coherence-title { display: grid; grid-template-columns: 7px minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: .75rem; font-weight: 650; }
+      .coherence-title::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+      .coherence.has-cautions .coherence-title::before { background: #b47b17; }
+      .coherence.has-conflicts .coherence-title::before { background: #bc4848; }
+      .coherence-title span { font-size: .72rem; font-weight: 600; white-space: nowrap; }
+      .coherence-note { margin: 7px 0 0 15px; font-size: .72rem; line-height: 1.4; color: var(--muted); }
+      .coherence-note:empty { display: none; }
+      .coherence-list { margin: 7px 0 0; padding-left: 32px; max-height: 138px; overflow-y: auto; font-size: .75rem; line-height: 1.4; }
+      .coherence-list:empty { display: none; }
       .coherence-list li { margin: 4px 0; }
       .coherence-list strong { display: block; }
       .paper { display: flex; flex-direction: column; min-height: 320px; max-height: calc(100vh - 265px); background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 2px 8px #20293608; overflow: hidden; }
@@ -133,14 +137,14 @@
         <aside class="preview-side" aria-labelledby="preview-title">
           <div class="preview-sticky">
             <div class="preview-head">
-              <div><h2 id="preview-title">Prompt preview</h2><p id="preview-subtitle">Ready to paste into your LLM.</p></div>
+              <h2 id="preview-title">Prompt preview</h2>
               <button class="clear" id="clear" type="button">Clear all</button>
             </div>
-            <div class="coherence" id="coherence" aria-live="polite"><div class="coherence-title"><strong id="coherence-title">Checking selection</strong><span id="coherence-count"></span></div><p class="coherence-note" id="coherence-note"></p><ul class="coherence-list" id="coherence-list"></ul></div>
             <div class="paper">
               <div class="paper-top"><div class="paper-title"><span aria-hidden="true"></span> GENERATED PROMPT</div><div class="word-count" id="word-count">0 words</div></div>
               <div class="prompt-body" id="prompt-body" aria-live="polite"></div>
             </div>
+            <div class="coherence" id="coherence" aria-live="polite"><div class="coherence-title"><strong id="coherence-title">Checking selection</strong><span id="coherence-count"></span></div><p class="coherence-note" id="coherence-note"></p><ul class="coherence-list" id="coherence-list"></ul></div>
             <div class="preview-actions"><span class="selection-count" id="selection-count">0 selected</span><button class="copy" id="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span id="copy-label">Copy prompt</span></button></div>
           </div>
         </aside>
@@ -168,7 +172,6 @@
       const coherenceCount = document.getElementById('coherence-count');
       const coherenceNote = document.getElementById('coherence-note');
       const coherenceList = document.getElementById('coherence-list');
-      const previewSubtitle = document.getElementById('preview-subtitle');
 
       function renderTabs() {
         tabs.replaceChildren();
@@ -355,8 +358,7 @@
         coherencePanel.className = `coherence${conflicts.length ? ' has-conflicts' : cautions.length ? ' has-cautions' : ''}`;
         coherenceTitle.textContent = conflicts.length ? 'Conflicting instructions' : cautions.length ? 'Review task coherence' : options.length ? 'No modeled conflicts found' : 'Start with a choice';
         coherenceCount.textContent = conflicts.length ? `${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}` : cautions.length ? `${cautions.length} caution${cautions.length === 1 ? '' : 's'}` : options.length ? 'Ready to copy' : '';
-        coherenceNote.textContent = conflicts.length ? 'Resolve the competing requests below before copying.' : 'Checks use catalog metadata; review the prompt for task-specific fit.';
-        previewSubtitle.textContent = conflicts.length ? 'Resolve conflicts before copying.' : cautions.length ? 'Review cautions before copying.' : 'Ready to paste into your LLM.';
+        coherenceNote.textContent = conflicts.length ? 'Resolve the issues below before copying.' : cautions.length ? 'Review the issues below before copying.' : '';
         coherenceList.replaceChildren();
         [...conflicts, ...cautions].forEach(issue => {
           const item = document.createElement('li');
