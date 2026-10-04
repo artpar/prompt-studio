@@ -1,5 +1,7 @@
 # Prompt catalog research
 
+Historical exploration: this document describes the earlier engineering-topic catalog. The current prompt behavior framework and catalog rules are in [PROMPT_FRAMEWORK.md](PROMPT_FRAMEWORK.md).
+
 Research date: 2026-10-04. Scope: software development prompts for coding agents. This is a synthesis of documented practices and practitioner examples, not a survey of how often developers use each style. The checkbox wording below is original and intended for the prompt builder.
 
 ## Personal log audit as a wording check

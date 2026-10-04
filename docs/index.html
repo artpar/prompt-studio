@@ -21,7 +21,7 @@
       .workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(410px, 1.15fr) minmax(240px, .48fr) minmax(390px, 1fr); background: var(--surface); }
       .catalog, .selection-side, .preview-side { min-width: 0; padding: 26px; background: var(--surface); }
       .catalog-inner { max-width: 740px; margin: 0 auto; }
-      .intro { margin: 0 0 18px; max-width: 580px; color: var(--muted); font-size: .81rem; line-height: 1.4; }
+      .intro { margin: 0 0 16px; max-width: 580px; color: var(--muted); font-size: .81rem; line-height: 1.4; }
       .selection-side { border-left: 1px solid var(--line); }
       .selected-panel { position: sticky; top: 26px; display: flex; flex-direction: column; height: calc(100vh - 118px); min-height: 320px; }
       .selected-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 15px; color: #202936; font-weight: 700; }
@@ -45,28 +45,32 @@
       .tabs-wrap { overflow-x: auto; overflow-y: hidden; border-bottom: 1px solid var(--line); scrollbar-width: thin; scrollbar-color: #c8ced8 transparent; }
       .tabs-wrap::-webkit-scrollbar { height: 5px; }
       .tabs-wrap::-webkit-scrollbar-thumb { background: #c8ced8; border-radius: 5px; }
-      .tabs { display: flex; width: max-content; gap: 18px; }
-      .tab { position: relative; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--muted); font-weight: 620; font-size: .8rem; padding: 0 2px 10px; white-space: nowrap; }
+      .tabs { display: flex; width: max-content; gap: 15px; }
+      .tab { position: relative; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--muted); font-weight: 620; font-size: .79rem; padding: 0 2px 10px; white-space: nowrap; }
       .tab-count { display: inline-grid; place-items: center; width: 18px; height: 18px; border: 1px solid #d6dbe3; border-radius: 50%; color: #7e8997; background: #f7f8fa; font-size: .65rem; font-weight: 760; line-height: 1; }
       .tab-count.has-selection { border-color: #b9c9ef; color: var(--accent); background: #eef2fc; }
       .tab[aria-selected="true"] { color: #202936; }
       .tab[aria-selected="true"] .tab-count.has-selection { border-color: var(--accent); color: #fff; background: var(--accent); }
       .tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--accent); border-radius: 3px 3px 0 0; }
-      .option-group { margin: 12px 0; }
-      .group-title { margin: 0 0 6px; color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-      .options { display: grid; gap: 5px; }
-      .direction-set { display: grid; gap: 4px; padding: 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--muted-surface); }
-      .direction-set-title { color: var(--muted); font-size: .68rem; font-weight: 700; line-height: 1.2; }
-      .direction-set .option { padding: 7px 9px; box-shadow: none; }
-      .direction-set .option strong { font-size: .8rem; }
-      .option { position: relative; display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; transition: border-color .18s, background .18s; cursor: pointer; }
+      .branch-description { margin: 12px 0 16px; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+      .option-group { position: relative; margin: 16px 0 19px; padding-left: 15px; }
+      .group-title { position: relative; display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: #415066; font-size: .76rem; font-weight: 700; line-height: 1.2; }
+      .group-title::before { content: ""; width: 9px; height: 9px; flex: none; margin-left: -14px; border: 2px solid var(--accent); border-radius: 50%; background: #fff; }
+      .options { display: grid; gap: 5px; margin-left: 2px; padding-left: 14px; border-left: 1px solid #cdd5e2; }
+      .options > .option::before, .direction-set::before { content: ""; position: absolute; top: 21px; right: 100%; width: 14px; height: 1px; background: #cdd5e2; }
+      .direction-set { position: relative; display: grid; gap: 5px; padding: 2px 0 3px 0; }
+      .direction-set-title { color: #59677b; font-size: .71rem; font-weight: 700; line-height: 1.2; }
+      .direction-set .option { margin-left: 9px; padding: 6px 9px; box-shadow: none; }
+      .direction-set .option::before { content: ""; position: absolute; top: 19px; right: 100%; width: 9px; height: 1px; background: #cdd5e2; }
+      .direction-set .option strong { font-size: .78rem; }
+      .option { position: relative; display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: start; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: #fff; transition: border-color .18s, background .18s; cursor: pointer; }
       .option:hover { border-color: #aeb9d3; }
       .option:has(input:checked) { border-color: #9db2e4; background: #f2f5fc; }
       .option input { appearance: none; width: 17px; height: 17px; margin: 1px 0 0; border: 1.5px solid #a2acba; border-radius: 4px; background: #fff; display: grid; place-items: center; }
       .option input:checked { border-color: var(--accent); background: var(--accent); }
       .option input:checked::after { content: ""; width: 8px; height: 4px; border-left: 2px solid white; border-bottom: 2px solid white; transform: translateY(-1px) rotate(-45deg); }
-      .option strong { display: block; font-size: .82rem; color: #202936; line-height: 1.26; }
-      .option small { display: block; margin-top: 2px; color: var(--muted); font-size: .72rem; line-height: 1.3; }
+      .option strong { display: block; font-size: .79rem; color: #202936; line-height: 1.26; }
+      .option small { display: block; margin-top: 2px; color: var(--muted); font-size: .71rem; line-height: 1.3; }
       .catalog-footer { margin-top: 13px; color: #8792a0; font-size: .72rem; line-height: 1.4; }
       .preview-side { border-left: 1px solid var(--line); }
       .preview-sticky { position: sticky; top: 26px; max-width: 680px; margin: 0 auto; }
@@ -115,10 +119,10 @@
         <section class="catalog" aria-labelledby="page-title">
           <div class="catalog-inner">
             <h1 class="sr-only" id="page-title">Prompt Builder</h1>
-            <p class="intro">Choose the action, scope, and engineering lenses for your coding prompt. A coherence check flags conflicting combinations.</p>
-            <div class="tabs-wrap"><div class="tabs" id="tabs" role="tablist" aria-label="Instruction categories"></div></div>
+            <p class="intro">Build instructions for a task you will provide separately. Follow a branch and select the directions that matter.</p>
+            <div class="tabs-wrap"><div class="tabs" id="tabs" role="tablist" aria-label="Prompt instruction branches"></div></div>
             <div id="tab-panel" role="tabpanel" tabindex="0"></div>
-            <p class="catalog-footer">Each choice adds a ready-to-use set of sentences to your prompt.</p>
+            <p class="catalog-footer">The branch names help you browse; only instruction sentences are copied.</p>
           </div>
         </section>
         <aside class="selection-side" aria-labelledby="selected-heading">
@@ -141,8 +145,9 @@
     </div>
     <script src="./catalog.js"></script>
     <script src="./coherence.js"></script>
+    <script src="./prompt.js"></script>
     <script>
-      const selected = new Set(['make-changes', 'inspect-codebase', 'evidence-check']);
+      const selected = new Set(['make-changes', 'inspect-relevant', 'finish-task']);
       let activeTab = 0;
       const tabs = document.getElementById('tabs');
       const tabPanel = document.getElementById('tab-panel');
@@ -288,6 +293,10 @@
         const category = catalog[activeTab];
         tabPanel.setAttribute('aria-labelledby', `tab-${activeTab}`);
         tabPanel.replaceChildren();
+        const description = document.createElement('p');
+        description.className = 'branch-description';
+        description.textContent = category.description;
+        tabPanel.append(description);
         const groups = new Map();
         category.options.forEach(option => {
           const group = option.group || 'Core';
@@ -305,13 +314,10 @@
             if (!directions.has(option.exclusiveGroup)) directions.set(option.exclusiveGroup, []);
             directions.get(option.exclusiveGroup).push(option);
           });
-          const hasStandaloneOptions = options.some(option => !option.exclusiveGroup || directions.get(option.exclusiveGroup).length < 2);
-          if (hasStandaloneOptions && group !== 'Core') {
-            const groupTitle = document.createElement('h2');
-            groupTitle.className = 'group-title';
-            groupTitle.textContent = group;
-            section.append(groupTitle);
-          }
+          const groupTitle = document.createElement('h2');
+          groupTitle.className = 'group-title';
+          groupTitle.textContent = group;
+          section.append(groupTitle);
           const rendered = new Set();
           options.forEach(option => {
             const peers = directions.get(option.exclusiveGroup);
@@ -339,14 +345,14 @@
       }
 
       function getSelectedOptions() { return allOptions.filter(option => selected.has(option.id)); }
-      function getPrompt() { return getSelectedOptions().map(option => option.sentences).join('\n\n'); }
+      function getPrompt() { return buildPrompt(allOptions, selected); }
 
       function renderCoherence(options) {
         const result = analyzeSelection(allOptions, selected);
         const { conflicts, cautions } = result;
         coherencePanel.className = `coherence${conflicts.length ? ' has-conflicts' : cautions.length ? ' has-cautions' : ''}`;
-        coherenceTitle.textContent = conflicts.length ? 'Conflicting instructions' : cautions.length ? 'Review task coherence' : options.length ? 'No modeled conflicts found' : 'Start with a choice';
-        coherenceCount.textContent = conflicts.length ? `${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}` : cautions.length ? `${cautions.length} caution${cautions.length === 1 ? '' : 's'}` : options.length ? 'Ready to copy' : '';
+        coherenceTitle.textContent = conflicts.length ? 'Conflicting instructions' : cautions.length ? 'Review your selection' : options.length ? 'No encoded conflicts' : 'Start with a choice';
+        coherenceCount.textContent = conflicts.length ? `${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}` : cautions.length ? `${cautions.length} note${cautions.length === 1 ? '' : 's'}` : options.length ? 'Ready to copy' : '';
         coherenceNote.textContent = conflicts.length ? 'Resolve the issues below before copying.' : cautions.length ? 'Review the issues below before copying.' : '';
         coherenceList.replaceChildren();
         [...conflicts, ...cautions].forEach(issue => {

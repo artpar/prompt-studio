@@ -2,28 +2,30 @@
 
 Live site: [Prompt Studio](https://artpar.github.io/prompt-studio/)
 
-A static, three-panel instruction builder for software development prompts. Browse checkboxes on the left, review selected instructions grouped by their source tab in the middle, and copy the generated prompt from the right. Checked options remain in their original tabs as well as the middle panel.
+A static prompt instruction builder. The left panel is a small skill tree organized by questions about the prompt: **Do what?**, **Use what?**, **How far?**, **When unsure?**, **Stop when?**, and **Show what?** Selected instructions stay visible in their original branches and in the middle panel. The right panel shows exactly what **Copy prompt** copies, with a separate status bar.
 
-The prompt preview displays exactly the text copied by **Copy prompt**. Selection counts, status, and word count sit outside the prompt area.
+The builder supplies reusable instructions for a task the user gives to an LLM separately. Branch labels and option details are navigation aids and never enter the generated prompt.
 
-## Customize the catalog
+## Catalog and prompt assembly
 
-Edit [`docs/catalog.js`](docs/catalog.js). Each category becomes a tab. Each option becomes a checkbox, and its `sentences` value becomes a paragraph in the copied prompt. Keep option `id` values unique. The initial selections are set in `docs/index.html` in the `selected` set.
+Edit [docs/catalog.js](docs/catalog.js) to change the catalog. Each branch has groups, and each option has a unique ID, label, detail, and sentence bundle. The groups form a shallow visual tree. Options sharing an exclusiveGroup appear under the same question; selecting incompatible answers produces a conflict. The directionGroups map supplies the question and issue label.
 
-Options can specify `group` to create a section inside a tab. Options sharing an `exclusiveGroup` render together in a nested directions checklist. Each group has a question and conflict label in the `directionGroups` map at the top of `docs/catalog.js`. This covers directions in every tab, including test, dependency, compatibility, review, and delivery policies. The same metadata drives the conflict check. `editOnly` and `multiChange` describe edit counts, and `constraints` describe other dimensions. A constraint has `dimension`, `allowed`, `strength` (`hard` or `soft`), and `meaning` fields. Options that request an independent outcome also declare a `workProduct` (`plan`, `implementation`, or `review`). Supporting design views and delivery operations do not need a work product. Action choices can declare `primaryWorkProduct`; `exclusiveWorkProduct` means that action cannot share the request with another outcome.
+An option may declare constraints: allowed values for a named dimension, with hard or soft strength and a plain-language meaning. [docs/coherence.js](docs/coherence.js) intersects the selected constraints. An empty hard intersection is a conflict; a soft mismatch is a note. It identifies an inclusion-minimal set of selections behind each issue. Explicit alternatives are checked in the same system. The checker does not infer the meaning of a task that has not been supplied.
 
-[`docs/coherence.js`](docs/coherence.js) intersects the allowed values from selected options on each dimension. An empty intersection of hard constraints is a conflict and blocks copying. A soft constraint outside the hard intersection produces a caution. It also checks requested work products: one extra outcome is a caution; two or more outcomes beyond the declared primary are a conflict. If no primary is declared, two different outcomes conflict. A broad set of 12 or more instructions receives a caution even if no specific conflict is encoded. The evaluator preserves every selection and names the options behind each issue. This catches encoded contradictions and competing requests; it cannot prove that an arbitrary task or prompt is semantically sound for a specific project. See [`CATALOG_RESEARCH.md`](CATALOG_RESEARCH.md) for the source-backed framework and worked combinations.
+[docs/prompt.js](docs/prompt.js) assembles selected sentence bundles in branch order. A more specific option may list IDs in covers to suppress redundant prose from those selected options. The selections still appear in both UI lists. For example, **Make a plan only** already forbids edits, so selecting **Make no changes** with it does not repeat that sentence in the copied prompt.
 
-## Preview locally
+The catalog favors prompt controls over software engineering topic categories. Specific things to request, such as a system map or interface contract, live as optional leaves under **Show what?** See [PROMPT_FRAMEWORK.md](PROMPT_FRAMEWORK.md) for the research and design rules behind this structure.
 
-```sh
-python3 -m http.server 8000 --directory docs
-```
+## Run locally
 
-Open `http://localhost:8000`.
+From the repository root, serve the docs directory:
 
-Run the coherence checks with `node --test tests/coherence.test.cjs`.
+    python3 -m http.server 8000 --directory docs
 
-## Publish with GitHub Pages
+Open http://localhost:8000. Run the behavior checks with:
 
-The site is published from the `main` branch's `/docs` folder. Push changes to `main` to trigger a new Pages deployment. The site uses only static files and needs no build step.
+    node --test tests/coherence.test.cjs
+
+## Publish
+
+GitHub Pages serves the main branch's docs folder. Push to main to deploy. The site uses static files and has no build step.
