@@ -18,6 +18,10 @@
       .topbar { height: 66px; flex: none; display: flex; align-items: center; padding: 0 26px; background: #fff; border-bottom: 1px solid var(--line); }
       .brand { display: flex; align-items: center; gap: 10px; font-weight: 730; letter-spacing: -.025em; font-size: 1.04rem; }
       .brand-mark { width: 29px; height: 29px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; color: #fff; font-size: 1.05rem; font-weight: 600; line-height: 1; }
+      .catalog-switch { display: flex; align-items: center; gap: 2px; margin-left: auto; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: #f5f6f8; }
+      .catalog-switch button { min-height: 32px; padding: 0 11px; border: 0; border-radius: 5px; background: transparent; color: #59677b; font-size: .76rem; font-weight: 650; white-space: nowrap; }
+      .catalog-switch button:hover { color: #202936; }
+      .catalog-switch button[aria-pressed="true"] { background: #fff; color: #202936; box-shadow: 0 1px 3px #2029361f; }
       .workspace { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(410px, 1.15fr) minmax(240px, .48fr) minmax(390px, 1fr); background: var(--surface); }
       .catalog, .selection-side, .preview-side { min-width: 0; padding: 26px; background: var(--surface); }
       .catalog-inner { max-width: 740px; margin: 0 auto; }
@@ -156,6 +160,7 @@
       @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; } .catalog, .preview-side { padding: 22px 20px; } .catalog-inner { max-width: none; } .selection-side { border-left: 0; border-top: 1px solid var(--line); padding: 18px 20px; } .selected-panel { position: static; height: 250px; min-height: 0; } }
       @media (max-width: 600px) { .preset-shell { grid-template-columns: 1fr; gap: 2px; } .preset-tools { justify-content: flex-start; } .preset-picker-layout { grid-template-columns: 1fr; min-height: 0; } .preset-choices { max-height: 180px; } .preset-detail-list { max-height: 180px; } }
       @media (max-width: 480px) { .topbar { height: 60px; padding: 0 16px; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 16px 14px; } .intro { margin-bottom: 15px; } .tabs { gap: 15px; } .option { padding: 8px 9px; } .prompt-body { padding: 20px 18px; } }
+      @media (max-width: 620px) { .topbar { height: auto; min-height: 60px; flex-wrap: wrap; gap: 8px; padding: 10px 16px; } .catalog-switch { width: 100%; margin-left: 0; } .catalog-switch button { flex: 1; min-width: 0; min-height: 39px; padding: 4px 6px; font-size: .7rem; line-height: 1.12; white-space: normal; } }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
     </style>
   </head>
@@ -163,12 +168,13 @@
     <div class="app">
       <header class="topbar">
         <div class="brand"><span class="brand-mark" aria-hidden="true">≡</span><span>Prompt Builder</span></div>
+        <nav class="catalog-switch" id="catalog-switch" aria-label="Prompt catalog"></nav>
       </header>
       <main class="workspace">
         <section class="catalog" aria-labelledby="page-title">
           <div class="catalog-inner">
             <h1 class="sr-only" id="page-title">Prompt Builder</h1>
-            <p class="intro">Build instructions for a task you will provide separately. Follow a branch and select the directions that matter.</p>
+            <p class="intro" id="catalog-intro"></p>
             <div class="preset-shell"><button class="preset-trigger" id="preset-trigger" type="button" aria-haspopup="dialog" aria-controls="preset-picker" aria-label="Choose a preset"><span class="preset-trigger-copy"><span class="preset-current" id="preset-current"></span><span class="preset-note" id="preset-note"></span></span><span class="preset-chevron" aria-hidden="true">⌄</span></button><div class="preset-tools"><button class="preset-action" id="save-preset" type="button">Save as…</button><button class="preset-action" id="copy-link" type="button">Copy link</button><button class="preset-action" id="delete-preset" type="button" hidden>Delete</button></div></div>
             <div class="tabs-wrap"><div class="tabs" id="tabs" role="tablist" aria-label="Prompt instruction branches"></div></div>
             <div id="tab-panel" role="tabpanel" tabindex="0"></div>
@@ -196,12 +202,25 @@
       <dialog class="preset-dialog" id="preset-dialog" aria-labelledby="preset-dialog-title"><form id="preset-form"><h2 id="preset-dialog-title">Save current selection</h2><label for="preset-name">Preset name</label><input id="preset-name" name="name" maxlength="48" required autocomplete="off" /><p class="preset-error" id="preset-error" role="alert"></p><div class="preset-dialog-actions"><button type="button" id="cancel-preset">Cancel</button><button type="submit">Save preset</button></div></form></dialog>
     </div>
     <script src="./catalog.js"></script>
+    <script src="./catalog-ux.js"></script>
+    <script src="./catalog-ui.js"></script>
     <script src="./coherence.js"></script>
     <script src="./prompt.js"></script>
     <script src="./presets.js"></script>
+    <script src="./presets-domains.js"></script>
     <script>
-      const initialSelection = selectionFromQuery(location.search, new Set(catalog.flatMap(branch => branch.options.map(option => option.id))), builtInPresets[0].ids);
-      const selected = new Set(initialSelection.ids);
+      const catalogSpecs = [
+        { id: 'software', label: 'Software programming', branches: catalog, presets: builtInPresets, intro: 'Build instructions for a software development task you will provide separately.' },
+        { id: 'ux', label: 'UX engineering', branches: uxCatalog, presets: uxBuiltInPresets, intro: 'Build instructions for a user experience task: user goals, journeys, evidence, and validation.' },
+        { id: 'ui', label: 'UI engineering', branches: uiCatalog, presets: uiBuiltInPresets, intro: 'Build instructions for an interface task: rendered behavior, visual details, states, and accessibility.' }
+      ];
+      const requestedCatalog = new URLSearchParams(location.search).get('catalog');
+      let activeSpec = catalogSpecs.find(spec => spec.id === requestedCatalog) || catalogSpecs[0];
+      let activeCatalog = activeSpec.branches;
+      let activeBuiltInPresets = activeSpec.presets;
+      const catalogStates = new Map();
+      const initialSelection = selectionFromQuery(location.search, new Set(activeCatalog.flatMap(branch => branch.options.map(option => option.id))), activeBuiltInPresets[0].ids, activeBuiltInPresets);
+      let selected = new Set(initialSelection.ids);
       let activeTab = 0;
       const tabs = document.getElementById('tabs');
       const tabPanel = document.getElementById('tab-panel');
@@ -211,8 +230,8 @@
       const copyButton = document.getElementById('copy');
       const copyLabel = document.getElementById('copy-label');
       const clearButton = document.getElementById('clear');
-      const allOptions = catalog.flatMap(category => category.options.map(option => ({ ...option, category: category.name })));
-      const optionById = new Map(allOptions.map(option => [option.id, option]));
+      let allOptions = activeCatalog.flatMap(category => category.options.map(option => ({ ...option, category: category.name })));
+      let optionById = new Map(allOptions.map(option => [option.id, option]));
       const selectedList = document.getElementById('selected-list');
       const selectedPanelCount = document.getElementById('selected-panel-count');
       const coherencePanel = document.getElementById('coherence');
@@ -238,12 +257,54 @@
       const presetError = document.getElementById('preset-error');
       let activePresetId = initialSelection.presetId;
       let previewPresetId = null;
+      const catalogSwitch = document.getElementById('catalog-switch');
+      const catalogIntro = document.getElementById('catalog-intro');
+      const researchLink = document.querySelector('.preset-detail-footer a');
+
+      function renderCatalogSwitch() {
+        catalogSwitch.replaceChildren();
+        catalogSpecs.forEach(spec => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = spec.label;
+          button.setAttribute('aria-pressed', String(spec.id === activeSpec.id));
+          button.addEventListener('click', () => switchCatalog(spec.id));
+          catalogSwitch.append(button);
+        });
+        catalogIntro.textContent = activeSpec.intro;
+        researchLink.href = activeSpec.id === 'software'
+          ? 'https://github.com/artpar/prompt-studio/blob/main/PRESET_RESEARCH.md'
+          : 'https://github.com/artpar/prompt-studio/blob/main/UX_UI_CATALOG_RESEARCH.md';
+      }
+
+      function switchCatalog(id) {
+        if (id === activeSpec.id) return;
+        catalogStates.set(activeSpec.id, { selected, activeTab, activePresetId, customPresets });
+        activeSpec = catalogSpecs.find(spec => spec.id === id);
+        activeCatalog = activeSpec.branches;
+        activeBuiltInPresets = activeSpec.presets;
+        allOptions = activeCatalog.flatMap(category => category.options.map(option => ({ ...option, category: category.name })));
+        optionById = new Map(allOptions.map(option => [option.id, option]));
+        const previous = catalogStates.get(id);
+        selected = previous?.selected || new Set(activeBuiltInPresets[0].ids);
+        activeTab = previous?.activeTab || 0;
+        activePresetId = previous?.activePresetId || activeBuiltInPresets[0].id;
+        customPresets = previous?.customPresets || loadCustomPresets();
+        previewPresetId = null;
+        renderCatalogSwitch();
+        renderTabs();
+        renderOptions();
+        renderSelected();
+        renderPreview();
+        updatePresetUI();
+        updateSelectionURL();
+      }
 
       function loadCustomPresets() {
         try {
-          const saved = JSON.parse(localStorage.getItem(presetStorageKey) || '[]');
+          const saved = JSON.parse(localStorage.getItem(activeSpec.id === 'software' ? presetStorageKey : `${presetStorageKey}-${activeSpec.id}`) || '[]');
           if (!Array.isArray(saved)) return [];
-          const used = new Set(builtInPresets.map(preset => preset.id));
+          const used = new Set(activeBuiltInPresets.map(preset => preset.id));
           return saved.slice(0, 50).map(raw => {
             const clean = cleanPreset(raw, optionById, used);
             if (clean) used.add(clean.id);
@@ -253,11 +314,11 @@
       }
 
       let customPresets = loadCustomPresets();
-      const allPresets = () => [...builtInPresets, ...customPresets];
+      const allPresets = () => [...activeBuiltInPresets, ...customPresets];
 
       function storeCustomPresets(presets) {
         try {
-          localStorage.setItem(presetStorageKey, JSON.stringify(presets.map(({ id, name, ids }) => ({ id, name, ids }))));
+          localStorage.setItem(activeSpec.id === 'software' ? presetStorageKey : `${presetStorageKey}-${activeSpec.id}`, JSON.stringify(presets.map(({ id, name, ids }) => ({ id, name, ids }))));
           return true;
         } catch { return false; }
       }
@@ -321,7 +382,7 @@
       }
 
       function updateSelectionURL() {
-        history.replaceState(null, '', selectionURL(location.href, selected, allOptions.map(option => option.id)));
+        history.replaceState(null, '', selectionURL(location.href, selected, allOptions.map(option => option.id), activeBuiltInPresets, activeSpec.id));
       }
 
       function applyPreset(preset) {
@@ -337,7 +398,7 @@
       }
 
       presetTrigger.addEventListener('click', () => {
-        previewPresetId = findMatchingPreset(allPresets(), selected, activePresetId)?.id || activePresetId || builtInPresets[0].id;
+        previewPresetId = findMatchingPreset(allPresets(), selected, activePresetId)?.id || activePresetId || activeBuiltInPresets[0].id;
         renderPresetChoices();
         renderPresetDetail();
         presetPicker.showModal();
@@ -352,7 +413,7 @@
       });
       copyLinkButton.addEventListener('click', async () => {
         try {
-          await navigator.clipboard.writeText(selectionURL(location.href, selected, allOptions.map(option => option.id)));
+          await navigator.clipboard.writeText(selectionURL(location.href, selected, allOptions.map(option => option.id), activeBuiltInPresets, activeSpec.id));
           copyLinkButton.textContent = 'Copied';
         } catch { copyLinkButton.textContent = 'Copy failed'; }
         window.setTimeout(() => { copyLinkButton.textContent = 'Copy link'; }, 2200);
@@ -401,7 +462,7 @@
 
       function renderTabs() {
         tabs.replaceChildren();
-        catalog.forEach((category, index) => {
+        activeCatalog.forEach((category, index) => {
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'tab';
@@ -424,7 +485,7 @@
       }
 
       function updateTabCounts() {
-        catalog.forEach((category, index) => {
+        activeCatalog.forEach((category, index) => {
           const count = category.options.filter(option => selected.has(option.id)).length;
           const badge = document.getElementById(`tab-count-${index}`);
           badge.textContent = String(count);
@@ -434,7 +495,7 @@
       }
 
       function setActiveTab(index, focus = false) {
-        activeTab = (index + catalog.length) % catalog.length;
+        activeTab = (index + activeCatalog.length) % activeCatalog.length;
         renderTabs();
         renderOptions();
         if (focus) document.getElementById(`tab-${activeTab}`).focus();
@@ -447,7 +508,7 @@
         if (event.key === 'ArrowRight') next = activeTab + 1;
         if (event.key === 'ArrowLeft') next = activeTab - 1;
         if (event.key === 'Home') next = 0;
-        if (event.key === 'End') next = catalog.length - 1;
+        if (event.key === 'End') next = activeCatalog.length - 1;
         if (next === undefined) return;
         event.preventDefault();
         setActiveTab(next, true);
@@ -500,7 +561,7 @@
           empty.textContent = 'Pick a checkbox below to start.';
           selectedList.append(empty);
         } else {
-          catalog.forEach((category, index) => {
+          activeCatalog.forEach((category, index) => {
             const selectedHere = category.options.filter(option => selected.has(option.id));
             if (!selectedHere.length) return;
             const section = document.createElement('section');
@@ -524,7 +585,7 @@
       }
 
       function renderOptions() {
-        const category = catalog[activeTab];
+        const category = activeCatalog[activeTab];
         tabPanel.setAttribute('aria-labelledby', `tab-${activeTab}`);
         tabPanel.replaceChildren();
         const description = document.createElement('p');
@@ -626,6 +687,7 @@
         }
       });
 
+      renderCatalogSwitch();
       renderTabs();
       renderOptions();
       renderSelected();

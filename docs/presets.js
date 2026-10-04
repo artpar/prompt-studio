@@ -58,21 +58,23 @@ function findMatchingPreset(presets, selection, preferredId) {
   return matches.find(preset => preset.id === preferredId) || matches[0] || null;
 }
 
-function selectionFromQuery(search, validIds, fallbackIds) {
+function selectionFromQuery(search, validIds, fallbackIds, presets = builtInPresets) {
   const query = new URLSearchParams(search);
   if (query.has('checks')) {
     return { ids: [...new Set(query.get('checks').split(',').filter(id => validIds.has(id)))], presetId: null };
   }
-  const preset = builtInPresets.find(item => item.id === query.get('preset'));
+  const preset = presets.find(item => item.id === query.get('preset'));
   return preset ? { ids: preset.ids, presetId: preset.id } :
-    { ids: fallbackIds, presetId: builtInPresets[0].id };
+    { ids: fallbackIds, presetId: presets[0].id };
 }
 
-function selectionURL(href, selection, orderedIds) {
+function selectionURL(href, selection, orderedIds, presets = builtInPresets, catalogId = 'software') {
   const url = new URL(href);
+  if (catalogId === 'software') url.searchParams.delete('catalog');
+  else url.searchParams.set('catalog', catalogId);
   url.searchParams.delete('preset');
   url.searchParams.delete('checks');
-  const builtin = findMatchingPreset(builtInPresets, selection);
+  const builtin = findMatchingPreset(presets, selection);
   if (builtin) url.searchParams.set('preset', builtin.id);
   else url.searchParams.set('checks', orderedIds.filter(id => selection.has(id)).join(','));
   return url.toString();

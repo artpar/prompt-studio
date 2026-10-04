@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
 const context = vm.createContext({ URL, URLSearchParams });
-for (const name of ['catalog', 'coherence', 'prompt', 'presets']) {
+for (const name of ['catalog', 'catalog-ux', 'catalog-ui', 'coherence', 'prompt', 'presets', 'presets-domains']) {
   vm.runInContext(fs.readFileSync(path.join(root, 'docs', name + '.js'), 'utf8'), context);
 }
 const catalog = vm.runInContext('catalog', context);
@@ -168,4 +168,53 @@ test('built-in and edited selections have portable deep links', () => {
   assert.deepEqual(Array.from(parse(new URL(customURL).search, valid, []).ids), ['make-changes', 'review-diff']);
   assert.deepEqual(Array.from(parse('?checks=missing,make-changes,make-changes', valid, []).ids), ['make-changes']);
   assert.deepEqual(Array.from(parse('?checks=', valid, torvalds.ids).ids), []);
+});
+
+test('UX and UI catalogs have complete, distinct prompt branches and valid presets', () => {
+  for (const [catalogName, presetName] of [['uxCatalog', 'uxBuiltInPresets'], ['uiCatalog', 'uiBuiltInPresets']]) {
+    const branches = vm.runInContext(catalogName, context);
+    const domainPresets = vm.runInContext(presetName, context);
+    assert.deepEqual(Array.from(branches, branch => branch.name), Array.from(catalog, branch => branch.name));
+    const items = branches.flatMap(branch => branch.options);
+    const ids = new Set(items.map(item => item.id));
+    assert.equal(ids.size, items.length);
+    assert.ok(items.length >= 35);
+    assert.ok(domainPresets.length >= 4);
+    for (const item of items) {
+      assert.ok(item.label && item.detail && item.sentences && item.group, item.id);
+      if (item.exclusiveGroup) assert.ok(directions[item.exclusiveGroup]?.question, item.id);
+    }
+    for (const preset of domainPresets) {
+      assert.ok(preset.ids.length >= 5);
+      for (const id of preset.ids) assert.ok(ids.has(id), `${preset.name}: ${id}`);
+      assert.equal(vm.runInContext('analyzeSelection', context)(items, new Set(preset.ids)).conflicts.length, 0, preset.name);
+      assert.ok(vm.runInContext('buildPrompt', context)(items, new Set(preset.ids)).length);
+    }
+  }
+});
+
+test('domain alternatives and edit boundaries produce meaningful conflicts', () => {
+  const analyzeDomain = (name, ids) => vm.runInContext('analyzeSelection', context)(vm.runInContext(name, context).flatMap(branch => branch.options), new Set(ids));
+  assert.equal(analyzeDomain('uxCatalog', ['ux-redesign', 'ux-recommend']).conflicts.length, 0);
+  assert.equal(analyzeDomain('uxCatalog', ['ux-research-plan', 'ux-audit', 'ux-redesign', 'ux-prototype']).conflicts.length, 0);
+  assert.equal(analyzeDomain('uxCatalog', ['ux-audit', 'ux-test-plan']).conflicts.length, 0);
+  assert.ok(analyzeDomain('uiCatalog', ['ui-build', 'ui-no-edit']).conflicts.some(issue => issue.dimension === 'fileEdits'));
+  assert.ok(analyzeDomain('uiCatalog', ['ui-core-states', 'ui-all-states']).conflicts.some(issue => issue.dimension === 'choice:uiStates'));
+  assert.equal(analyzeDomain('uiCatalog', ['ui-spec', 'ui-no-edit']).conflicts.length, 0);
+  assert.equal(analyzeDomain('uiCatalog', ['ui-audit', 'ui-spec', 'ui-build', 'ui-edit']).conflicts.length, 0);
+});
+
+test('domain URLs round-trip without mixing catalog selections', () => {
+  const parse = vm.runInContext('selectionFromQuery', context);
+  const link = vm.runInContext('selectionURL', context);
+  const ux = vm.runInContext('uxCatalog', context).flatMap(branch => branch.options.map(item => item.id));
+  const ui = vm.runInContext('uiCatalog', context).flatMap(branch => branch.options.map(item => item.id));
+  const uxPresets = vm.runInContext('uxBuiltInPresets', context);
+  const uiPresets = vm.runInContext('uiBuiltInPresets', context);
+  const uxURL = link('https://example.test/?catalog=ui&preset=ui-build-page', new Set(uxPresets[0].ids), ux, uxPresets, 'ux');
+  assert.equal(new URL(uxURL).searchParams.get('catalog'), 'ux');
+  assert.deepEqual(Array.from(parse(new URL(uxURL).search, new Set(ux), [], uxPresets).ids), Array.from(uxPresets[0].ids));
+  const uiURL = link('https://example.test/?catalog=ux', new Set(['ui-build', 'ui-native']), ui, uiPresets, 'ui');
+  assert.deepEqual(Array.from(parse(new URL(uiURL).search, new Set(ui), [], uiPresets).ids), ['ui-build', 'ui-native']);
+  assert.deepEqual(Array.from(parse(new URL(uxURL).search, new Set(ui), uiPresets[0].ids, uiPresets).ids), Array.from(uiPresets[0].ids));
 });

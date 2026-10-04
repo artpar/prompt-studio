@@ -2,7 +2,7 @@
 
 Live site: [Prompt Studio](https://artpar.github.io/prompt-studio/)
 
-A static prompt instruction builder. The left panel is a small skill tree organized by questions about the prompt: **Do what?**, **Use what?**, **How far?**, **When unsure?**, **Stop when?**, and **Show what?** Selected instructions stay visible in their original branches and in the middle panel. The right panel shows exactly what **Copy prompt** copies, with a separate status bar.
+A static prompt instruction builder with separate **Software programming**, **UX engineering**, and **UI engineering** catalogs. The left panel is a small skill tree organized by questions about the prompt: **Do what?**, **Use what?**, **How far?**, **When unsure?**, **Stop when?**, and **Show what?** Selected instructions stay visible in their original branches and in the middle panel. The right panel shows exactly what **Copy prompt** copies, with a separate status bar.
 
 The builder supplies reusable instructions for a task the user gives to an LLM separately. Branch labels and option details are navigation aids and never enter the generated prompt.
 
@@ -10,13 +10,13 @@ The builder supplies reusable instructions for a task the user gives to an LLM s
 
 Open the preset picker to see each starting set's purpose and checks, then apply one to replace the selected checks. You can toggle checks freely; the control shows when the set has been edited. **Save as…** stores the current coherent selection under a new name in this browser. Saved presets can be applied or deleted, and built-in presets cannot be changed. The prompt preview and conflict checks use the resulting checkboxes exactly as they do for a manual selection.
 
-Use a URL such as `?preset=torvalds-inspired` to open a built-in preset. Edits produce a `?checks=...` URL, and **Copy link** copies a portable link with the current checkbox IDs. Browser-local preset names are not embedded in shared links.
+Use a URL such as `?preset=torvalds-inspired` to open a software preset, `?catalog=ux&preset=ux-research-plan` for UX, or `?catalog=ui&preset=ui-reference` for UI. Edits produce a `?checks=...` URL, and **Copy link** copies a portable link with the catalog and current checkbox IDs. Browser-local preset names are not embedded in shared links. Switching catalogs preserves each catalog's current selection during the session; browser-local saved presets are stored separately for each catalog.
 
-Built-in sets live in [docs/presets.js](docs/presets.js) as arrays of catalog IDs. The choices and primary sources behind them are recorded in [PRESET_RESEARCH.md](PRESET_RESEARCH.md). “Torvalds-inspired patch” is a researched interpretation of public kernel guidance, not an impersonation or a claim that one patch must touch one file.
+Built-in sets live in [docs/presets.js](docs/presets.js) and [docs/presets-domains.js](docs/presets-domains.js) as arrays of catalog IDs. The choices and primary sources behind them are recorded in [PRESET_RESEARCH.md](PRESET_RESEARCH.md) and [UX_UI_CATALOG_RESEARCH.md](UX_UI_CATALOG_RESEARCH.md). “Torvalds-inspired patch” is a researched interpretation of public kernel guidance, not an impersonation or a claim that one patch must touch one file.
 
 ## Catalog and prompt assembly
 
-Edit [docs/catalog.js](docs/catalog.js) to change the catalog. Each branch has groups, and each option has a unique ID, label, detail, and sentence bundle. The groups form a shallow visual tree. Options sharing an exclusiveGroup appear under the same question; selecting incompatible answers produces a conflict. The directionGroups map supplies the question and issue label.
+Edit [docs/catalog.js](docs/catalog.js), [docs/catalog-ux.js](docs/catalog-ux.js), or [docs/catalog-ui.js](docs/catalog-ui.js) to change a catalog. Each branch has groups, and each option has a unique ID, label, detail, and sentence bundle. The groups form a shallow visual tree. Options sharing an exclusiveGroup appear under the same question; selecting incompatible answers produces a conflict. The directionGroups map supplies the question and issue label.
 
 An option may declare constraints: allowed values for a named dimension, with hard or soft strength and a plain-language meaning. [docs/coherence.js](docs/coherence.js) intersects the selected constraints. An empty hard intersection is a conflict; a soft mismatch is a note. It identifies an inclusion-minimal set of selections behind each issue. Explicit alternatives are checked in the same system. The checker does not infer the meaning of a task that has not been supplied.
 

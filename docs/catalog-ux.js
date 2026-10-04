@@ -1,0 +1,64 @@
+// UX engineering controls the user problem, experience model, and evidence.
+Object.assign(directionGroups, {
+  uxEvidence: { question: "What evidence may it rely on?", subject: "evidence rule", title: "Choose one evidence rule" },
+  uxScope: { question: "How much of the journey should it cover?", subject: "journey scope", title: "Choose one journey scope" },
+  uxValidation: { question: "What validation is possible?", subject: "validation rule", title: "Choose one validation rule" },
+  uxArtifact: { question: "What may it change or deliver?", subject: "artifact boundary", title: "Choose one artifact boundary" },
+  uxDetail: { question: "How detailed should the output be?", subject: "output detail", title: "Choose one output detail" }
+});
+
+const uxCatalog = [
+  { name: "Do what?", description: "Choose the primary UX request and the work that supports it.", options: [
+    o("ux-redesign", "Redesign a user journey", "Improve how a user completes a goal.", "Redesign the user journey for the stated goal. Describe the current friction, the proposed path, and the decisions that make it easier to complete.", "Requested work"),
+    o("ux-audit", "Audit an existing experience", "Find consequential usability problems.", "Audit the supplied experience against the user's goal. Report concrete friction points, their impact, and actionable improvements.", "Requested work"),
+    o("ux-research-plan", "Plan user research", "Frame questions, participants, and methods.", "Produce a user research plan with focused questions, participant criteria, suitable methods, and how the findings will affect the design. Do not claim to have conducted research.", "Requested work"),
+    o("ux-critique", "Critique a proposed UX design", "Review a supplied flow or concept.", "Critique the supplied UX design against the stated user goal and available evidence. Identify specific strengths, risks, and changes.", "Requested work"),
+    o("ux-map-journey", "Map the current journey", "Show steps, handoffs, and breakdowns.", "Map the steps a user takes to reach the goal, including entry points, decisions, handoffs, and places where they may fail or leave.", "Add an action"),
+    o("ux-reframe", "Question the requested solution", "Check the user need behind a feature request.", "Translate the requested feature into the user problem it is meant to solve. State where the feature is an assumption rather than an observed need.", "Add an action"),
+    o("ux-compare", "Compare alternative flows", "Assess real tradeoffs for the user.", "Compare plausible paths to the same user goal. Explain the tradeoffs in effort, clarity, recovery, and accessibility before recommending one.", "Add an action"),
+    o("ux-content", "Improve task content", "Make labels and guidance support action.", "Review the labels, instructions, and messages used in the journey. Rewrite confusing content in plain language that helps users act and recover.", "Add an action"),
+    o("ux-prioritize", "Prioritize UX problems", "Order problems by user impact.", "Prioritize the identified problems by their effect on task completion and the strength of the supporting evidence. Explain the order.", "Add an action")
+  ]},
+  { name: "Use what?", description: "Tell the agent which UX evidence exists and what it can infer from it.", options: [
+    o("ux-supplied", "Use supplied research", "Ground claims in attached findings.", "Use any supplied interviews, observations, or research findings as evidence. Keep direct findings separate from interpretation; if none are supplied, say what evidence is missing.", "Available evidence"),
+    o("ux-analytics", "Use behavioral data", "Examine funnels, search, or support signals.", "If analytics, search logs, or support reports are available, use them to locate likely friction. Do not treat a metric alone as proof of a user's motive.", "Available evidence"),
+    o("ux-current", "Inspect the current experience", "Follow the actual task path.", "Inspect the current journey or prototype through the user's task, including entry, completion, errors, and return paths, before proposing a change.", "Available evidence"),
+    o("ux-users", "Include varied user needs", "Account for different abilities and contexts.", "Consider users with different abilities, devices, literacy, and situational constraints. State which needs are evidenced and which still require research.", "Available evidence"),
+    o("ux-evidence-only", "Use only observed evidence", "Do not fill research gaps with invented facts.", "Base user claims only on supplied or directly observed evidence. Do not infer user behavior beyond that evidence or create hypothetical findings; mark unanswered research questions instead.", "Evidence boundary", { exclusiveGroup: "uxEvidence" }),
+    o("ux-hypotheses", "Allow explicit hypotheses", "Explore possibilities without presenting them as facts.", "Where evidence is missing, form explicit, testable hypotheses about user behavior. Label each hypothesis and the evidence needed to confirm it.", "Evidence boundary", { exclusiveGroup: "uxEvidence" }),
+    o("ux-constraints", "Use service constraints", "Include policy, operations, and technical limits.", "Use the supplied policy, operational, and technical constraints when shaping the experience. Flag constraints that appear to block a user need.", "Available evidence")
+  ]},
+  { name: "How far?", description: "Set the journey boundary and the form of the deliverable.", options: [
+    o("ux-one-task", "Focus on one touchpoint", "Keep the experience boundary narrow.", "Limit the work to the named touchpoint and its immediate entry and exit. Mention the wider journey only when it affects this touchpoint.", "Journey boundary", { exclusiveGroup: "uxScope" }),
+    o("ux-end-to-end", "Cover the end-to-end journey", "Include before and after the screen.", "Cover the user's whole journey from trigger and entry through completion, confirmation, and follow-up, including relevant offline or cross-channel steps.", "Journey boundary", { exclusiveGroup: "uxScope" }),
+    o("ux-recommend", "Recommend changes only", "Deliver a proposal without modifying artifacts.", "Return recommendations and design rationale only. Do not edit project files or publish a prototype.", "Deliverable boundary", { exclusiveGroup: "uxArtifact", constraints: [c("fileEdits", ["none"], "forbids deliverable edits")] }),
+    o("ux-prototype", "Create a testable prototype", "Make enough to test the journey.", "Create a prototype with enough realistic content and interaction to test the proposed journey. Treat it as a research artifact, not a production release.", "Deliverable boundary", { exclusiveGroup: "uxArtifact", constraints: [c("fileEdits", ["one", "many"], "requires deliverable edits")] }),
+    o("ux-design-files", "Update the UX artifacts", "Revise flows, copy, or wireframes.", "Update the relevant UX artifacts for the proposed journey, including the flow, content, and key states needed for review.", "Deliverable boundary", { exclusiveGroup: "uxArtifact", constraints: [c("fileEdits", ["one", "many"], "requires deliverable edits")] }),
+    o("ux-ia", "Include information architecture", "Organize content around findability.", "Show how content and navigation are grouped and labeled so users can find the next step. Explain changes to the existing structure.", "Coverage"),
+    o("ux-recovery", "Include failure and recovery", "Design beyond the happy path.", "Cover common errors, interruptions, and return visits. Make the next safe action clear at each point.", "Coverage"),
+    o("ux-existing-patterns", "Use established patterns", "Reuse familiar interaction patterns.", "Prefer established patterns from the product or design system when they support the user goal. Explain any departure.", "Coverage")
+  ]},
+  { name: "When unsure?", description: "Handle missing user evidence and decisions explicitly.", options: [
+    o("ux-ask", "Ask about critical user facts", "Pause for a decision that changes the journey.", "Ask a focused question when the target user, goal, or constraint is unknown and different answers would materially change the journey. Continue independent work meanwhile.", "Missing decisions", { exclusiveGroup: "uncertainty" }),
+    o("ux-assume", "Proceed with stated assumptions", "Keep ordinary gaps visible.", "Make reasonable assumptions for missing details, label them, and proceed. Identify which assumptions need later validation with users.", "Missing decisions", { exclusiveGroup: "uncertainty" }),
+    o("ux-no-personas", "Do not invent user findings", "Keep claims traceable to evidence.", "Do not fabricate participant quotes, persona demographics, test outcomes, or measured improvements. Mark unsourced claims as hypotheses.", "Evidence integrity"),
+    o("ux-conflict", "Flag user and business tension", "Expose decisions with real tradeoffs.", "When a business rule conflicts with a user need, describe the effect on the journey and the available choices instead of silently choosing a side.", "Evidence integrity")
+  ]},
+  { name: "Stop when?", description: "Choose a validation level that matches available access.", options: [
+    o("ux-review", "Run an expert walkthrough", "Check the journey against realistic tasks.", "Walk through representative tasks in the proposed experience. Check clarity, effort, error recovery, and points where a user may lose context; report the observed issues.", "Validation"),
+    o("ux-test-users", "Test with actual users", "Use recruited participants when available.", "If access to appropriate participants is available, test the journey with realistic tasks, observe behavior, and revise the design from the findings. If access is unavailable, provide a test plan without claiming results.", "Validation"),
+    o("ux-test-plan", "Provide a usability test plan", "Specify tasks and success signals.", "Provide a usability test plan with participant criteria, realistic tasks, observation prompts, success measures, and questions that remain open. Do not report fictional test results.", "Validation"),
+    o("ux-check-needs", "Check inclusive use cases", "Review barriers for varied users.", "Check the journey for barriers caused by language, assistive technology, device, connectivity, or time pressure. Record cases that still need participant validation.", "Additional checks"),
+    o("ux-measures", "Define task measures", "Make future evaluation possible.", "Define observable measures such as task completion, time, errors, or confidence where appropriate. Explain what each measure can and cannot show.", "Additional checks")
+  ]},
+  { name: "Show what?", description: "Choose the UX artifacts and explanation the answer must contain.", options: [
+    o("ux-brief", "Keep the answer concise", "Lead with the proposed result.", "Keep the final answer concise. Show the main recommendation, evidence, and remaining uncertainty.", "Answer detail", { exclusiveGroup: "uxDetail" }),
+    o("ux-detailed", "Show detailed rationale", "Make each decision reviewable.", "Explain the design decisions in enough detail to review the user need, evidence, alternatives, and consequences.", "Answer detail", { exclusiveGroup: "uxDetail" }),
+    o("ux-user-needs", "State user needs", "Express goals as problems to solve.", "State the user needs as goals or problems in context, without embedding a preferred feature as the need itself.", "Artifacts"),
+    o("ux-flow", "Show a task flow", "Make decisions and branches visible.", "Show the proposed task flow with entry points, decisions, alternate paths, and completion states.", "Artifacts"),
+    o("ux-journey", "Show a journey map", "Connect steps to friction and evidence.", "Show the journey steps, user questions, likely friction, and supporting evidence. Mark unvalidated portions clearly.", "Artifacts"),
+    o("ux-wireframes", "Show wireframes", "Describe key screens and states.", "Provide wireframes or structured screen descriptions for the key steps and states, with annotations that explain the interaction.", "Artifacts"),
+    o("ux-copy", "Include interface copy", "Write labels, help, and recovery text.", "Include proposed labels, instructions, confirmations, and error messages for the important moments in the journey.", "Artifacts"),
+    o("ux-findings", "Show prioritized findings", "Tie issues to user impact.", "List findings in priority order, with the affected user task, supporting observation, and proposed next action for each.", "Artifacts")
+  ]}
+];
