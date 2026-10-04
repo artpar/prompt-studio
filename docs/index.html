@@ -210,16 +210,16 @@
     <script src="./presets-domains.js"></script>
     <script>
       const catalogSpecs = [
-        { id: 'software', label: 'Software programming', branches: catalog, presets: builtInPresets, intro: 'Build instructions for a software development task you will provide separately.' },
-        { id: 'ux', label: 'UX engineering', branches: uxCatalog, presets: uxBuiltInPresets, intro: 'Build instructions for a user experience task: user goals, journeys, evidence, and validation.' },
-        { id: 'ui', label: 'UI engineering', branches: uiCatalog, presets: uiBuiltInPresets, intro: 'Build instructions for an interface task: rendered behavior, visual details, states, and accessibility.' }
+        { id: 'software', label: 'Software programming', branches: catalog, presets: builtInPresets, legacyPresets: legacySoftwarePresets, intro: 'Build instructions for a software development task you will provide separately.' },
+        { id: 'ux', label: 'UX engineering', branches: uxCatalog, presets: uxBuiltInPresets, legacyPresets: legacyUxPresets, intro: 'Build instructions for a user experience task: user goals, journeys, evidence, and validation.' },
+        { id: 'ui', label: 'UI engineering', branches: uiCatalog, presets: uiBuiltInPresets, legacyPresets: legacyUiPresets, intro: 'Build instructions for an interface task: rendered behavior, visual details, states, and accessibility.' }
       ];
       const requestedCatalog = new URLSearchParams(location.search).get('catalog');
       let activeSpec = catalogSpecs.find(spec => spec.id === requestedCatalog) || catalogSpecs[0];
       let activeCatalog = activeSpec.branches;
       let activeBuiltInPresets = activeSpec.presets;
       const catalogStates = new Map();
-      const initialSelection = selectionFromQuery(location.search, new Set(activeCatalog.flatMap(branch => branch.options.map(option => option.id))), activeBuiltInPresets[0].ids, activeBuiltInPresets);
+      const initialSelection = selectionFromQuery(location.search, new Set(activeCatalog.flatMap(branch => branch.options.map(option => option.id))), activeBuiltInPresets[0].ids, activeBuiltInPresets, activeSpec.legacyPresets);
       let selected = new Set(initialSelection.ids);
       let activeTab = 0;
       const tabs = document.getElementById('tabs');

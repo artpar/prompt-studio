@@ -218,3 +218,36 @@ test('domain URLs round-trip without mixing catalog selections', () => {
   assert.deepEqual(Array.from(parse(new URL(uiURL).search, new Set(ui), [], uiPresets).ids), ['ui-build', 'ui-native']);
   assert.deepEqual(Array.from(parse(new URL(uxURL).search, new Set(ui), uiPresets[0].ids, uiPresets).ids), Array.from(uiPresets[0].ids));
 });
+
+test('every visible built-in preset credits a distinct person and uses a distinct checkbox set', () => {
+  const collections = [
+    presets,
+    vm.runInContext('uxBuiltInPresets', context),
+    vm.runInContext('uiBuiltInPresets', context)
+  ];
+  const names = ['Linus Torvalds', 'Kent Beck', 'Martin Fowler', 'Michael Feathers', 'Simon Brown', 'Rich Hickey', 'Trisha Gee',
+    'Don Norman', 'Jakob Nielsen', 'Erika Hall', 'Indi Young', 'Steve Krug',
+    'Brad Frost', 'Dan Mall', 'Sara Soueidan', 'Josh W. Comeau', 'Steve Schoger'];
+  const all = collections.flat();
+  assert.equal(all.length, names.length);
+  for (const name of names) assert.equal(all.filter(preset => preset.name.startsWith(name)).length, 1, name);
+  assert.equal(new Set(all.map(preset => [...preset.ids].sort().join(','))).size, all.length);
+});
+
+test('retired generic preset URLs preserve their original selections within each catalog', () => {
+  const parse = vm.runInContext('selectionFromQuery', context);
+  for (const [catalogName, presetName, legacyName] of [
+    ['catalog', 'builtInPresets', 'legacySoftwarePresets'],
+    ['uxCatalog', 'uxBuiltInPresets', 'legacyUxPresets'],
+    ['uiCatalog', 'uiBuiltInPresets', 'legacyUiPresets']
+  ]) {
+    const ids = new Set(vm.runInContext(catalogName, context).flatMap(branch => branch.options.map(item => item.id)));
+    const current = vm.runInContext(presetName, context);
+    const legacy = vm.runInContext(legacyName, context);
+    for (const old of legacy) {
+      const restored = parse(`?preset=${old.id}`, ids, current[0].ids, current, legacy);
+      assert.deepEqual(Array.from(restored.ids), Array.from(old.ids), old.id);
+      assert.equal(restored.presetId, null);
+    }
+  }
+});

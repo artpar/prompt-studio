@@ -28,6 +28,24 @@ The UI catalog focuses on the rendered interface and implementation behavior. It
 
 The existing constraint intersection checks alternatives within a question and cross-branch edit/test conflicts. We kept independent actions compatible: a UX audit, research plan, and redesign can be requested together; a redesign can be recommendation-only; an expert walkthrough can accompany a usability test plan; a UI audit and specification can accompany a build. Explicit no-edit directions conflict with prototype or implementation directions that require edits. The checker analyzes catalog metadata, not the external task; a clean status means only that no **encoded** instruction conflict was found.
 
-## Built-in starting sets
+## Person-inspired starting sets
 
-UX: journey redesign, evidence-led audit, research plan, prototype for testing, and task content review. UI: complete page, design recreation, component and states, accessibility audit, and responsive repair. Each is an editable selection of normal catalog checks. They were assembled to represent common prompt intents supported by the sources above, not to imply one universal workflow.
+Each set is an editable selection of normal catalog checks. Names credit a source of the approach; the copied prompt contains only the selected instruction sentences. These are focused interpretations, not imitations of a person's writing style or claims that the person endorses the tool.
+
+| UX person | Checkbox decisions | Primary source |
+| --- | --- | --- |
+| Don Norman | Redesign the whole journey; check discoverability, feedback, the user's mental model, recovery, and user needs | [Norman's *Design of Everyday Things*](https://www.nngroup.com/books/design-everyday-things-revised/) and [his essay on conceptual models](https://jnd.org/design-as-communication/) |
+| Jakob Nielsen | Audit against concrete usability heuristics, then prioritize and report findings | [Nielsen's ten heuristics](https://www.nngroup.com/articles/ten-usability-heuristics/) and [heuristic-evaluation method](https://www.nngroup.com/articles/how-to-conduct-a-heuristic-evaluation/theory-heuristic-evaluations/) |
+| Erika Hall | Reframe assumptions, ask decision-relevant research questions, use available evidence, and plan appropriate research without inventing findings | [Hall's *Just Enough Research*](https://www.mulebooks.com/just-enough-research/) and [her explanation of choosing research activities](https://www.muledesign.com/blog/you-need-more-enough) |
+| Indi Young | Investigate different ways people reason toward the same goal without assigning demographic stereotypes | [Young's thinking-styles and mental-model work](https://indiyoung.com/) and [mental-model FAQ](https://rosenfeldmedia.com/books/mental-models-frequently-asked-questions/) |
+| Steve Krug | Make the next action self-evident, inspect one touchpoint, and prepare a small task-based usability check | [Krug's *Don't Make Me Think*](https://sensible.com/dont-make-me-think/) and [*Rocket Surgery Made Easy*](https://sensible.com/rocket-surgery-made-easy/) |
+
+| UI person | Checkbox decisions | Primary source |
+| --- | --- | --- |
+| Brad Frost | Build reusable components and test both individual parts and the full page | [Frost's *Atomic Design* methodology](https://atomicdesign.bradfrost.com/chapter-2/) and [parts-and-whole essay](https://bradfrost.com/blog/post/the-part-and-the-whole/) |
+| Dan Mall | Audit the existing product, then start with one reusable component already grounded in that product | [Mall's “Starting a Design System”](https://danmall.com/posts/starting-a-design-system/) |
+| Sara Soueidan | Prefer native semantics and check focus, keyboard behavior, state announcements, and assistive-technology results | [Soueidan on semantic HTML](https://www.sarasoueidan.com/blog/what-accessibility-taught-me/) and [focus indicators](https://www.sarasoueidan.com/blog/focus-indicators/) |
+| Josh W. Comeau | Diagnose CSS layout modes and intrinsic sizing before fixing responsive defects | [Comeau on layout algorithms](https://www.joshwcomeau.com/css/understanding-layout-algorithms/) and [responsive Flexbox](https://www.joshwcomeau.com/css/interactive-guide-to-flexbox/) |
+| Steve Schoger | Improve visual hierarchy and use a consistent spacing system while checking the rendered page | [Schoger and Adam Wathan's *Refactoring UI*](https://refactoringui.com/) |
+
+Previously shared generic preset URLs still resolve to their original selections, but the picker contains only these named choices.

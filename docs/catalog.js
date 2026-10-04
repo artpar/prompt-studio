@@ -49,8 +49,12 @@ const catalog = [
         "If the task concerns a defect, trace the observed behavior to its cause before choosing a fix. Distinguish the cause from symptoms.", "Add an action"),
       o("examine-data", "Examine data relationships", "Check whether the representation creates special cases.",
         "Before changing the code, identify the relevant data structures, their relationships, and invariants. If a clearer representation removes repeated special cases, prefer it over adding another branch.", "Add an action"),
+      o("separate-concerns", "Untangle coupled concerns", "Reduce interactions between unrelated responsibilities.",
+        "Identify concerns that are entangled in the current design. Separate responsibilities where doing so reduces the number of interactions, states, or special cases that must be understood together.", "Add an action"),
       o("review-result", "Review the result", "Check the work before finishing.",
-        "Before finishing, inspect the result against the original request and correct material gaps you find.", "Add an action")
+        "Before finishing, inspect the result against the original request and correct material gaps you find.", "Add an action"),
+      o("review-purpose", "Focus the review purpose", "Keep findings relevant to the decision.",
+        "State the review's main purpose from the task, then focus comments on whether the change meets it and remains readable, maintainable, and safe. Let automated checks handle routine formatting when they are available.", "Add an action")
     ]
   },
   {
@@ -102,6 +106,10 @@ const catalog = [
         "Keep control flow straightforward. Avoid tricky expressions and deep nesting; split a complex function into focused parts when that makes the code easier to understand.", "Change boundaries"),
       o("local-conventions", "Follow local conventions", "Match the touched code without unrelated churn.",
         "Follow the established style and naming in the code you touch. Do not reformat or rename unrelated code as part of the change.", "Change boundaries"),
+      o("small-refactor-steps", "Refactor in small safe steps", "Keep behavior stable after each structural edit.",
+        "When restructuring code, make small behavior-preserving changes and check the relevant behavior between steps. Keep structural cleanup separate from behavior changes so each is reviewable.", "Change boundaries"),
+      o("find-seam", "Find a testable seam", "Isolate difficult legacy behavior before editing.",
+        "For hard-to-test legacy code, find or create a seam that lets the affected behavior be exercised without changing unrelated production behavior. Keep the seam as small as the task permits.", "Change boundaries"),
       o("no-new-deps", "Add no dependencies", "Work with the existing stack.",
         "Do not add a new dependency. If the task cannot be completed correctly within the existing stack, explain the constraint.", "Change boundaries",
         { exclusiveGroup: "dependencyPolicy" }),
@@ -183,6 +191,9 @@ const catalog = [
         { exclusiveGroup: "tests", constraints: [c("automatedTests", ["skip"], "forbids automated tests")] }),
       o("red-green", "Use a failing test first", "Make the test expose the defect before fixing it.",
         "When a focused test can express the target behavior, first show that it fails for the intended reason. Make the change, then confirm that the test passes.", "Checks",
+        { constraints: [c("automatedTests", ["run"], "requires automated tests"), c("fileEdits", ["one", "many"], "requires file edits")] }),
+      o("characterize-behavior", "Characterize current behavior", "Protect what legacy code actually does.",
+        "Before changing poorly understood code, add focused tests that record its current observable behavior. Investigate surprising results before deciding whether they are intended behavior or defects.", "Checks",
         { constraints: [c("automatedTests", ["run"], "requires automated tests"), c("fileEdits", ["one", "many"], "requires file edits")] }),
       o("check-real-flow", "Check a real user path", "Observe the result in its normal flow.",
         "Check a representative user path or direct use of the result. Report what you observed rather than treating a passing test as the whole outcome.", "Checks"),
