@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
-const context = vm.createContext({});
+const context = vm.createContext({ URL, URLSearchParams });
 for (const name of ['catalog', 'coherence', 'prompt', 'presets']) {
   vm.runInContext(fs.readFileSync(path.join(root, 'docs', name + '.js'), 'utf8'), context);
 }
@@ -132,6 +132,10 @@ test('built-in presets refer to known checks and have no encoded conflicts', () 
 test('Torvalds-inspired preset means one problem, not one file or one edit', () => {
   const preset = presets.find(item => item.id === 'torvalds-inspired');
   assert.ok(preset.ids.includes('one-problem'));
+  assert.ok(preset.ids.includes('examine-data'));
+  assert.ok(preset.ids.includes('simple-control-flow'));
+  assert.ok(preset.ids.includes('review-diff'));
+  assert.ok(preset.ids.includes('preserve-interfaces'));
   assert.ok(preset.ids.includes('explain-why'));
   assert.ok(!preset.ids.includes('one-change'));
   assert.ok(!preset.ids.includes('one-file'));
@@ -147,4 +151,21 @@ test('custom presets are cleaned and exact selection matching honors the active 
   assert.equal(match([saved], new Set(['make-changes']), saved.id).id, saved.id);
   assert.equal(match([saved], new Set(['make-changes', 'finish-task'])), null);
   assert.equal(clean({ id: 'invalid', name: 'X', ids: ['make-changes'] }, valid), null);
+});
+
+test('built-in and edited selections have portable deep links', () => {
+  const parse = vm.runInContext('selectionFromQuery', context);
+  const link = vm.runInContext('selectionURL', context);
+  const ordered = options.map(option => option.id);
+  const valid = new Set(ordered);
+  const torvalds = presets.find(item => item.id === 'torvalds-inspired');
+  const builtInURL = link('https://example.test/app/?old=1', new Set(torvalds.ids), ordered);
+  assert.match(builtInURL, /preset=torvalds-inspired/);
+  assert.ok(!builtInURL.includes('checks='));
+  assert.deepEqual(Array.from(parse(new URL(builtInURL).search, valid, []).ids), Array.from(torvalds.ids));
+  const customURL = link('https://example.test/app/', new Set(['make-changes', 'review-diff']), ordered);
+  assert.match(customURL, /checks=/);
+  assert.deepEqual(Array.from(parse(new URL(customURL).search, valid, []).ids), ['make-changes', 'review-diff']);
+  assert.deepEqual(Array.from(parse('?checks=missing,make-changes,make-changes', valid, []).ids), ['make-changes']);
+  assert.deepEqual(Array.from(parse('?checks=', valid, torvalds.ids).ids), []);
 });

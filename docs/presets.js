@@ -10,8 +10,8 @@ const builtInPresets = [
   {
     id: "torvalds-inspired",
     name: "Torvalds-inspired patch",
-    description: "One clear problem, a simple change, and a reviewable explanation.",
-    ids: ["make-changes", "trace-cause", "review-result", "inspect-relevant", "one-problem", "preserve-behavior", "choose-direct", "finish-task", "relevant-tests", "brief-response", "explain-why"]
+    description: "One clear problem, sound data structures, simple code, and a reviewable patch.",
+    ids: ["make-changes", "examine-data", "inspect-relevant", "one-problem", "simple-control-flow", "local-conventions", "preserve-behavior", "preserve-interfaces", "relevant-tests", "review-diff", "explain-why"]
   },
   {
     id: "reproduce-and-repair",
@@ -56,4 +56,24 @@ function findMatchingPreset(presets, selection, preferredId) {
   const matches = presets.filter(preset => preset.ids.length === selection.size &&
     preset.ids.every(id => selection.has(id)));
   return matches.find(preset => preset.id === preferredId) || matches[0] || null;
+}
+
+function selectionFromQuery(search, validIds, fallbackIds) {
+  const query = new URLSearchParams(search);
+  if (query.has('checks')) {
+    return { ids: [...new Set(query.get('checks').split(',').filter(id => validIds.has(id)))], presetId: null };
+  }
+  const preset = builtInPresets.find(item => item.id === query.get('preset'));
+  return preset ? { ids: preset.ids, presetId: preset.id } :
+    { ids: fallbackIds, presetId: builtInPresets[0].id };
+}
+
+function selectionURL(href, selection, orderedIds) {
+  const url = new URL(href);
+  url.searchParams.delete('preset');
+  url.searchParams.delete('checks');
+  const builtin = findMatchingPreset(builtInPresets, selection);
+  if (builtin) url.searchParams.set('preset', builtin.id);
+  else url.searchParams.set('checks', orderedIds.filter(id => selection.has(id)).join(','));
+  return url.toString();
 }

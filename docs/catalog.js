@@ -30,7 +30,7 @@ const catalog = [
     description: "Choose the main request, then add useful supporting actions.",
     options: [
       o("make-changes", "Make the changes", "Implement the requested result.",
-        "Make the requested project change. Follow the selected stopping point and report what was completed.", "Main request",
+        "Make the requested project change and report what was completed.", "Main request",
         { exclusiveGroup: "mainAction", constraints: [c("fileEdits", ["one", "many"], "requires file edits")] }),
       o("plan-only", "Make a plan only", "Return a plan without changing the project.",
         "Produce a concrete plan with steps, dependencies, and decisions for the task. Do not edit files or change project state.", "Main request",
@@ -47,6 +47,8 @@ const catalog = [
         "If a plan is supplied or produced, check it for missing decisions, contradictions, and important edge cases. Resolve the gaps that affect the requested result.", "Add an action"),
       o("trace-cause", "Find the cause", "Understand a failure before fixing it.",
         "If the task concerns a defect, trace the observed behavior to its cause before choosing a fix. Distinguish the cause from symptoms.", "Add an action"),
+      o("examine-data", "Examine data relationships", "Check whether the representation creates special cases.",
+        "Before changing the code, identify the relevant data structures, their relationships, and invariants. If a clearer representation removes repeated special cases, prefer it over adding another branch.", "Add an action"),
       o("review-result", "Review the result", "Check the work before finishing.",
         "Before finishing, inspect the result against the original request and correct material gaps you find.", "Add an action")
     ]
@@ -96,6 +98,10 @@ const catalog = [
         "Preserve existing behavior outside the requested change. Explain any behavior change necessary to meet the task.", "Change boundaries"),
       o("one-problem", "Solve one problem per change", "Keep the result focused and reviewable.",
         "Keep each change focused on one problem. Separate unrelated cleanup or redesign from the requested fix so the reason for each change stays clear.", "Change boundaries"),
+      o("simple-control-flow", "Keep control flow simple", "Avoid tricky expressions and deep nesting.",
+        "Keep control flow straightforward. Avoid tricky expressions and deep nesting; split a complex function into focused parts when that makes the code easier to understand.", "Change boundaries"),
+      o("local-conventions", "Follow local conventions", "Match the touched code without unrelated churn.",
+        "Follow the established style and naming in the code you touch. Do not reformat or rename unrelated code as part of the change.", "Change boundaries"),
       o("no-new-deps", "Add no dependencies", "Work with the existing stack.",
         "Do not add a new dependency. If the task cannot be completed correctly within the existing stack, explain the constraint.", "Change boundaries",
         { exclusiveGroup: "dependencyPolicy" }),
@@ -167,6 +173,8 @@ const catalog = [
       o("relevant-tests", "Run relevant tests", "Use checks related to the change.",
         "Run the automated tests relevant to the changed behavior. Report the commands and their results.", "Checks",
         { exclusiveGroup: "tests", constraints: [c("automatedTests", ["run"], "requires automated tests")] }),
+      o("review-diff", "Review the final diff", "Inspect the exact patch before finishing.",
+        "Review the final diff for unintended files, unrelated edits, and code that is harder to follow than necessary. Correct material issues before finishing.", "Checks"),
       o("full-tests", "Run the full test suite", "Check the entire available suite.",
         "Run the project's full automated test suite and report failures, including failures that appear unrelated.", "Checks",
         { exclusiveGroup: "tests", constraints: [c("automatedTests", ["run"], "requires automated tests")] }),

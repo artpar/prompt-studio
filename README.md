@@ -8,7 +8,9 @@ The builder supplies reusable instructions for a task the user gives to an LLM s
 
 ## Presets
 
-Choose a built-in preset to replace the selected checks with a named starting set. You can then toggle checks freely; the picker shows when the set has been edited. **Save as…** stores the current coherent selection under a new name in this browser. Saved presets can be applied or deleted, and built-in presets cannot be changed. The prompt preview and conflict checks use the resulting checkboxes exactly as they do for a manual selection.
+Open the preset picker to see each starting set's purpose and checks, then apply one to replace the selected checks. You can toggle checks freely; the control shows when the set has been edited. **Save as…** stores the current coherent selection under a new name in this browser. Saved presets can be applied or deleted, and built-in presets cannot be changed. The prompt preview and conflict checks use the resulting checkboxes exactly as they do for a manual selection.
+
+Use a URL such as `?preset=torvalds-inspired` to open a built-in preset. Edits produce a `?checks=...` URL, and **Copy link** copies a portable link with the current checkbox IDs. Browser-local preset names are not embedded in shared links.
 
 Built-in sets live in [docs/presets.js](docs/presets.js) as arrays of catalog IDs. The choices and primary sources behind them are recorded in [PRESET_RESEARCH.md](PRESET_RESEARCH.md). “Torvalds-inspired patch” is a researched interpretation of public kernel guidance, not an impersonation or a claim that one patch must touch one file.
 
