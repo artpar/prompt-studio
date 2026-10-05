@@ -8,7 +8,7 @@
     <title>Prompt Builder</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23315cc6'/%3E%3Cpath d='M18 19h28M18 31h18M18 43h28' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E" />
     <style>
-      :root { color-scheme: light; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 16px; background: #fff; color: #202936; --surface: #fff; --muted-surface: #f5f6f8; --line: #e1e5eb; --muted: #697586; --accent: #315cc6; }
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 16px; background: #f7f9fc; color: #26354a; --surface: #fff; --muted-surface: #f3f6fb; --line: #dbe3ee; --muted: #68778c; --accent: #315cc6; }
       * { box-sizing: border-box; }
       body { margin: 0; min-width: 320px; }
       button, input, select { font: inherit; }
@@ -156,10 +156,75 @@
       .copy:disabled { background: #aebbc5; box-shadow: none; cursor: default; transform: none; }
       .copy svg { width: 16px; height: 16px; }
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-      @media (max-width: 1120px) { .workspace { grid-template-columns: minmax(0, 1fr) 260px; } .preview-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); } .preview-sticky { position: static; max-width: none; } .paper { min-height: 340px; max-height: none; } .prompt-body { max-height: 540px; } }
+      /* Linked draft: compact blue workspace with references shared by selections and prompt text. */
+      .topbar { height: 60px; padding: 0 22px; }
+      .workspace { grid-template-columns: minmax(350px, 1.15fr) minmax(205px, .48fr) minmax(340px, 1fr); }
+      .catalog, .selection-side, .preview-side { padding: 21px; }
+      .intro { margin-bottom: 12px; font-size: .75rem; }
+      .preset-shell { display: block; margin-bottom: 13px; padding: 0 0 12px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; }
+      .preset-kicker { display: block; margin-bottom: 4px; color: var(--accent); font-size: .65rem; font-weight: 800; letter-spacing: .085em; text-transform: uppercase; }
+      .preset-trigger { align-items: start; padding: 0; }
+      .preset-trigger-copy { overflow: visible; }
+      .preset-current { overflow: visible; white-space: normal; text-overflow: clip; color: #22344e; font-family: Georgia, "Times New Roman", serif; font-size: 1.48rem; font-weight: 700; line-height: 1.12; letter-spacing: -.035em; }
+      .preset-note { overflow: visible; white-space: normal; text-overflow: clip; margin-top: 4px; font-size: .73rem; line-height: 1.35; }
+      .preset-chevron { padding-top: 6px; color: var(--accent); font-size: .73rem; font-weight: 750; white-space: nowrap; }
+      .preset-bottom { display: flex; align-items: start; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-top: 9px; }
+      .preset-suggestions { display: flex; align-items: baseline; gap: 5px 10px; flex-wrap: wrap; min-width: 0; }
+      .preset-suggestions span { color: var(--muted); font-size: .68rem; white-space: nowrap; }
+      .preset-suggestions button { padding: 0; border: 0; border-bottom: 1px solid #c8d6f1; background: transparent; color: #33465f; font-size: .68rem; font-weight: 650; text-align: left; }
+      .preset-suggestions button:hover { color: var(--accent); border-bottom-color: var(--accent); }
+      .preset-tools { margin-left: auto; }
+      .preset-action { min-height: 24px; padding: 0 3px; color: #52647c; font-size: .68rem; }
+      .selection-side { background: #f7f9fd; }
+      .selected-panel { top: 21px; height: calc(100vh - 102px); }
+      .selected-head { margin-bottom: 10px; }
+      .selected-head h2, .preview-head h2 { color: #23344e; font-family: Georgia, "Times New Roman", serif; font-size: 1.14rem; font-weight: 700; letter-spacing: -.025em; }
+      .selected-head span { color: var(--accent); font-weight: 750; }
+      .selected-list { gap: 0; }
+      .selected-group + .selected-group { padding-top: 9px; margin-top: 9px; }
+      .selected-group-head h3 { color: #5b6b82; font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+      .selected-list .option, .selected-list .option:has(input:checked) { grid-template-columns: 15px 22px minmax(0, 1fr); gap: 5px; min-height: 27px; padding: 4px 1px; background: transparent; }
+      .selected-list .option.is-recent, .selected-list .option.is-recent:has(input:checked) { background: #eaf1ff; }
+      .selected-list .option strong { font-size: .7rem; }
+      .tabs { gap: 15px; }
+      .tab { gap: 4px; padding-bottom: 9px; font-size: .73rem; }
+      .tab-count, .tab-count.has-selection, .tab[aria-selected="true"] .tab-count.has-selection { display: inline; width: auto; height: auto; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--muted); font-size: .68rem; }
+      .tab[aria-selected="true"] .tab-count.has-selection { color: var(--accent); }
+      .tab[aria-selected="true"]::after { height: 2px; }
+      .branch-description { margin: 11px 0 14px; font-size: .72rem; }
+      .option-group { margin: 13px 0 16px; padding: 0; }
+      .group-title { margin-bottom: 7px; color: #526682; font-size: .67rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+      .group-title::before, .options > .option::before, .direction-set::before, .direction-set .option::before { content: none; }
+      .options { gap: 0; margin: 0; padding: 0; border-left: 0; border-top: 1px solid var(--line); }
+      .direction-set { gap: 0; padding: 0; }
+      .direction-set-title { padding: 8px 2px 5px; color: #53657f; font-size: .68rem; }
+      .option, .direction-set .option { grid-template-columns: 17px 23px minmax(0, 1fr); gap: 7px; align-items: start; min-height: 42px; margin: 0; padding: 8px 2px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; box-shadow: none; }
+      .option:hover, .direction-set .option:hover { border-color: var(--line); background: #f8faff; }
+      .option:has(input:checked), .direction-set .option:has(input:checked) { border-color: var(--line); background: #f3f7ff; box-shadow: none; }
+      .option input { width: 16px; height: 16px; margin-top: 1px; }
+      .option strong, .direction-set .option strong { font-size: .75rem; line-height: 1.25; }
+      .option small { font-size: .68rem; line-height: 1.25; }
+      .option-ref { display: block; padding-top: 3px; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .63rem; font-weight: 750; line-height: 1.2; }
+      .option-ref.is-covered { color: var(--muted); }
+      .option.is-recent { background: #eaf1ff; }
+      .catalog-footer { margin-top: 10px; font-size: .68rem; }
+      .preview-sticky { top: 21px; }
+      .preview-head { margin-bottom: 7px; }
+      .preview-note { margin: 0 0 9px; color: var(--muted); font-size: .68rem; }
+      .paper { min-height: 0; max-height: calc(100vh - 240px); border: 0; border-top: 1px solid var(--line); border-radius: 0; box-shadow: none; }
+      .prompt-body { padding: 0; color: #2d3d53; font-size: .82rem; line-height: 1.45; white-space: normal; }
+      .prompt-line { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+      .prompt-line.is-recent { padding-right: 8px; padding-left: 8px; background: #eaf1ff; }
+      .prompt-ref { padding-top: 2px; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .67rem; font-weight: 750; }
+      .prompt-text { color: #2d3d53; font-family: Georgia, "Times New Roman", serif; font-size: .85rem; line-height: 1.48; white-space: pre-wrap; }
+      .prompt-empty { margin: 12px 0; color: var(--muted); font-size: .76rem; }
+      .coherence { margin-top: 7px; padding: 8px 0; border-top: 0; }
+      .preview-actions { margin-top: 10px; }
+      .copy { border-radius: 5px; }
+      @media (max-width: 1000px) { .workspace { grid-template-columns: minmax(0, 1fr) 260px; } .preview-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); } .preview-sticky { position: static; max-width: none; } .paper { max-height: none; } .prompt-body { max-height: 540px; } }
       @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; } .catalog, .preview-side { padding: 22px 20px; } .catalog-inner { max-width: none; } .selection-side { border-left: 0; border-top: 1px solid var(--line); padding: 18px 20px; } .selected-panel { position: static; height: 250px; min-height: 0; } }
       @media (max-width: 600px) { .preset-shell { grid-template-columns: 1fr; gap: 2px; } .preset-tools { justify-content: flex-start; } .preset-picker-layout { grid-template-columns: 1fr; min-height: 0; } .preset-choices { max-height: 180px; } .preset-detail-list { max-height: 180px; } }
-      @media (max-width: 480px) { .topbar { height: 60px; padding: 0 16px; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 16px 14px; } .intro { margin-bottom: 15px; } .tabs { gap: 15px; } .option { padding: 8px 9px; } .prompt-body { padding: 20px 18px; } }
+      @media (max-width: 480px) { .topbar { height: 60px; padding: 0 16px; } .catalog, .preview-side { padding: 18px 14px; } .selection-side { padding: 16px 14px; } .intro { margin-bottom: 15px; } .tabs { gap: 15px; } .option { padding: 8px 2px; } .prompt-body { padding: 0; } }
       @media (max-width: 620px) { .topbar { height: auto; min-height: 60px; flex-wrap: wrap; gap: 8px; padding: 10px 16px; } .catalog-switch { width: 100%; margin-left: 0; } .catalog-switch button { flex: 1; min-width: 0; min-height: 39px; padding: 4px 6px; font-size: .7rem; line-height: 1.12; white-space: normal; } }
       @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
     </style>
@@ -175,7 +240,7 @@
           <div class="catalog-inner">
             <h1 class="sr-only" id="page-title">Prompt Builder</h1>
             <p class="intro" id="catalog-intro"></p>
-            <div class="preset-shell"><button class="preset-trigger" id="preset-trigger" type="button" aria-haspopup="dialog" aria-controls="preset-picker" aria-label="Choose a preset"><span class="preset-trigger-copy"><span class="preset-current" id="preset-current"></span><span class="preset-note" id="preset-note"></span></span><span class="preset-chevron" aria-hidden="true">⌄</span></button><div class="preset-tools"><button class="preset-action" id="save-preset" type="button">Save as…</button><button class="preset-action" id="copy-link" type="button">Copy link</button><button class="preset-action" id="delete-preset" type="button" hidden>Delete</button></div></div>
+            <div class="preset-shell"><span class="preset-kicker">Current preset</span><button class="preset-trigger" id="preset-trigger" type="button" aria-haspopup="dialog" aria-controls="preset-picker" aria-label="Choose a preset"><span class="preset-trigger-copy"><span class="preset-current" id="preset-current"></span><span class="preset-note" id="preset-note"></span></span><span class="preset-chevron" aria-hidden="true">Change</span></button><div class="preset-bottom"><div class="preset-suggestions" id="preset-suggestions" aria-label="Other presets"></div><div class="preset-tools"><button class="preset-action" id="save-preset" type="button">Save as…</button><button class="preset-action" id="copy-link" type="button">Copy link</button><button class="preset-action" id="delete-preset" type="button" hidden>Delete</button></div></div></div>
             <div class="tabs-wrap"><div class="tabs" id="tabs" role="tablist" aria-label="Prompt instruction branches"></div></div>
             <div id="tab-panel" role="tabpanel" tabindex="0"></div>
             <p class="catalog-footer">The branch names help you browse; only instruction sentences are copied.</p>
@@ -190,6 +255,7 @@
               <h2 id="preview-title">Prompt preview</h2>
               <button class="clear" id="clear" type="button">Clear all</button>
             </div>
+            <p class="preview-note">Numbers connect selected instructions to the copied text.</p>
             <div class="paper">
               <div class="prompt-body" id="prompt-body" role="document" aria-label="Generated prompt" aria-live="polite"></div>
             </div>
@@ -242,6 +308,7 @@
       const presetTrigger = document.getElementById('preset-trigger');
       const presetCurrent = document.getElementById('preset-current');
       const presetNote = document.getElementById('preset-note');
+      const presetSuggestions = document.getElementById('preset-suggestions');
       const presetPicker = document.getElementById('preset-picker');
       const presetChoices = document.getElementById('preset-choices');
       const presetDetailName = document.getElementById('preset-detail-name');
@@ -257,6 +324,7 @@
       const presetError = document.getElementById('preset-error');
       let activePresetId = initialSelection.presetId;
       let previewPresetId = null;
+      let lastChangedId = null;
       const catalogSwitch = document.getElementById('catalog-switch');
       const catalogIntro = document.getElementById('catalog-intro');
       const researchLink = document.querySelector('.preset-detail-footer a');
@@ -291,6 +359,7 @@
         activePresetId = previous?.activePresetId || activeBuiltInPresets[0].id;
         customPresets = previous?.customPresets || loadCustomPresets();
         previewPresetId = null;
+        lastChangedId = null;
         renderCatalogSwitch();
         renderTabs();
         renderOptions();
@@ -371,6 +440,13 @@
         });
       }
 
+      function openPresetPicker(id) {
+        previewPresetId = id || findMatchingPreset(allPresets(), selected, activePresetId)?.id || activePresetId || activeBuiltInPresets[0].id;
+        renderPresetChoices();
+        renderPresetDetail();
+        presetPicker.showModal();
+      }
+
       function updatePresetUI() {
         const matched = findMatchingPreset(allPresets(), selected, activePresetId);
         const base = allPresets().find(preset => preset.id === activePresetId);
@@ -379,6 +455,18 @@
           (selected.size ? `${selected.size} checks selected` : 'No checks selected');
         deletePresetButton.hidden = !matched?.custom;
         savePresetButton.disabled = !selected.size || analyzeSelection(allOptions, selected).conflicts.length > 0;
+        presetSuggestions.replaceChildren();
+        const intro = document.createElement('span');
+        intro.textContent = 'Also try';
+        presetSuggestions.append(intro);
+        activeBuiltInPresets.filter(preset => preset.id !== (matched?.id || base?.id)).slice(0, 2).forEach(preset => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.textContent = preset.name;
+          button.setAttribute('aria-label', `Preview ${preset.name} preset`);
+          button.addEventListener('click', () => openPresetPicker(preset.id));
+          presetSuggestions.append(button);
+        });
       }
 
       function updateSelectionURL() {
@@ -389,6 +477,7 @@
         selected.clear();
         preset.ids.forEach(id => selected.add(id));
         activePresetId = preset.id;
+        lastChangedId = null;
         updateTabCounts();
         renderOptions();
         renderSelected();
@@ -397,12 +486,7 @@
         updateSelectionURL();
       }
 
-      presetTrigger.addEventListener('click', () => {
-        previewPresetId = findMatchingPreset(allPresets(), selected, activePresetId)?.id || activePresetId || activeBuiltInPresets[0].id;
-        renderPresetChoices();
-        renderPresetDetail();
-        presetPicker.showModal();
-      });
+      presetTrigger.addEventListener('click', () => openPresetPicker());
       document.getElementById('close-picker').addEventListener('click', () => presetPicker.close());
       document.getElementById('apply-preset').addEventListener('click', () => {
         const preset = allPresets().find(item => item.id === previewPresetId);
@@ -517,6 +601,7 @@
       function changeSelection(option, checked, fromSelectedList = false) {
         if (checked) selected.add(option.id);
         else selected.delete(option.id);
+        lastChangedId = checked ? option.id : null;
         updateTabCounts();
         renderOptions();
         renderSelected();
@@ -529,15 +614,34 @@
         else document.getElementById(`tab-${activeTab}`).focus();
       }
 
-      function makeOption(option, compact = false) {
+      function getPromptReferences() {
+        const references = new Map();
+        buildPromptEntries(allOptions, selected).forEach((entry, index) => {
+          entry.ids.forEach(id => references.set(id, index + 1));
+        });
+        return references;
+      }
+
+      function makeOption(option, compact = false, references = getPromptReferences()) {
         const label = document.createElement('label');
         label.className = 'option';
+        label.classList.toggle('is-recent', option.id === lastChangedId && selected.has(option.id));
         const input = document.createElement('input');
         input.id = `${compact ? 'selected-' : ''}option-${option.id}`;
         input.type = 'checkbox';
         input.value = option.id;
         input.checked = selected.has(option.id);
         input.addEventListener('change', () => changeSelection(option, input.checked, compact));
+        const reference = document.createElement('span');
+        reference.className = 'option-ref';
+        reference.setAttribute('aria-hidden', 'true');
+        const number = references.get(option.id);
+        if (number) reference.textContent = String(number).padStart(2, '0');
+        else if (input.checked) {
+          reference.textContent = '↳';
+          reference.classList.add('is-covered');
+          reference.title = 'Included in another selected instruction';
+        }
         const copy = document.createElement('span');
         const name = document.createElement('strong');
         name.textContent = option.label;
@@ -547,13 +651,14 @@
           detail.textContent = option.detail;
           copy.append(detail);
         }
-        label.append(input, copy);
+        label.append(input, reference, copy);
         return label;
       }
 
       function renderSelected() {
         selectedList.replaceChildren();
         const options = getSelectedOptions();
+        const references = getPromptReferences();
         selectedPanelCount.textContent = `${options.length} selected`;
         if (!options.length) {
           const empty = document.createElement('p');
@@ -577,7 +682,7 @@
             section.setAttribute('aria-labelledby', title.id);
             const items = document.createElement('div');
             items.className = 'selected-group-items';
-            selectedHere.forEach(option => items.append(makeOption(optionById.get(option.id), true)));
+            selectedHere.forEach(option => items.append(makeOption(optionById.get(option.id), true, references)));
             section.append(heading, items);
             selectedList.append(section);
           });
@@ -586,6 +691,7 @@
 
       function renderOptions() {
         const category = activeCatalog[activeTab];
+        const references = getPromptReferences();
         tabPanel.setAttribute('aria-labelledby', `tab-${activeTab}`);
         tabPanel.replaceChildren();
         const description = document.createElement('p');
@@ -617,7 +723,7 @@
           options.forEach(option => {
             const peers = directions.get(option.exclusiveGroup);
             if (!peers || peers.length < 2) {
-              list.append(makeOption(optionById.get(option.id)));
+              list.append(makeOption(optionById.get(option.id), false, references));
               return;
             }
             if (rendered.has(option.exclusiveGroup)) return;
@@ -631,7 +737,7 @@
             subtitle.className = 'direction-set-title';
             subtitle.textContent = direction?.question || 'Choose a direction';
             sublist.append(subtitle);
-            peers.forEach(peer => sublist.append(makeOption(optionById.get(peer.id))));
+            peers.forEach(peer => sublist.append(makeOption(optionById.get(peer.id), false, references)));
             list.append(sublist);
           });
           section.append(list);
@@ -646,7 +752,7 @@
         const result = analyzeSelection(allOptions, selected);
         const { conflicts, cautions } = result;
         coherencePanel.className = `coherence${conflicts.length ? ' has-conflicts' : cautions.length ? ' has-cautions' : ''}`;
-        coherenceTitle.textContent = conflicts.length ? 'Conflicting instructions' : cautions.length ? 'Review your selection' : options.length ? 'No encoded conflicts' : 'Start with a choice';
+        coherenceTitle.textContent = conflicts.length ? 'Conflicting instructions' : cautions.length ? 'Review your selection' : options.length ? 'Selection is coherent' : 'Start with a choice';
         coherenceCount.textContent = conflicts.length ? `${conflicts.length} conflict${conflicts.length === 1 ? '' : 's'}` : cautions.length ? `${cautions.length} note${cautions.length === 1 ? '' : 's'}` : options.length ? 'Ready to copy' : '';
         coherenceNote.textContent = conflicts.length ? 'Resolve the issues below before copying.' : cautions.length ? 'Review the issues below before copying.' : '';
         coherenceList.replaceChildren();
@@ -666,7 +772,27 @@
         const options = getSelectedOptions();
         const prompt = getPrompt();
         const { conflicts } = renderCoherence(options);
-        promptBody.textContent = prompt;
+        promptBody.replaceChildren();
+        const entries = buildPromptEntries(allOptions, selected);
+        if (!entries.length) {
+          const empty = document.createElement('p');
+          empty.className = 'prompt-empty';
+          empty.textContent = 'Choose an instruction to start your prompt.';
+          promptBody.append(empty);
+        }
+        entries.forEach((entry, index) => {
+          const line = document.createElement('div');
+          line.className = 'prompt-line';
+          line.classList.toggle('is-recent', entry.ids.includes(lastChangedId));
+          const reference = document.createElement('span');
+          reference.className = 'prompt-ref';
+          reference.textContent = String(index + 1).padStart(2, '0');
+          const text = document.createElement('span');
+          text.className = 'prompt-text';
+          text.textContent = entry.text;
+          line.append(reference, text);
+          promptBody.append(line);
+        });
         const words = prompt.trim() ? prompt.trim().split(/\s+/).length : 0;
         wordCount.textContent = `${words} ${words === 1 ? 'word' : 'words'}`;
         selectionCount.textContent = `${options.length} ${options.length === 1 ? 'instruction' : 'instructions'} selected`;
@@ -675,7 +801,7 @@
         copyLabel.textContent = conflicts.length ? 'Resolve conflicts' : 'Copy prompt';
       }
 
-      clearButton.addEventListener('click', () => { selected.clear(); updateTabCounts(); renderOptions(); renderSelected(); renderPreview(); updatePresetUI(); updateSelectionURL(); });
+      clearButton.addEventListener('click', () => { selected.clear(); lastChangedId = null; updateTabCounts(); renderOptions(); renderSelected(); renderPreview(); updatePresetUI(); updateSelectionURL(); });
       copyButton.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(getPrompt());

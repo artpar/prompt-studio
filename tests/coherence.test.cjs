@@ -104,6 +104,21 @@ test('prompt contains only selected instruction text in branch order', () => {
   assert.doesNotMatch(text, /Do what\?|Show what\?|Specific outputs|Main request/);
 });
 
+test('preview references match copied paragraphs, including covered and duplicate choices', () => {
+  const entriesFor = vm.runInContext('buildPromptEntries', context);
+  const ids = ['plan-only', 'plan-ahead', 'no-changes', 'show-plan', 'inspect-relevant'];
+  const entries = entriesFor(options, new Set(ids));
+  assert.equal(entries.map(entry => entry.text).join('\n\n'), prompt(ids));
+  assert.ok(entries.every(entry => !entry.ids.includes('no-changes')));
+
+  const duplicates = entriesFor([
+    { id: 'a', sentences: 'Same sentence.' },
+    { id: 'b', sentences: 'Same sentence.' }
+  ], new Set(['a', 'b']));
+  assert.equal(duplicates.length, 1);
+  assert.deepEqual(Array.from(duplicates[0].ids), ['a', 'b']);
+});
+
 test('minimal incompatible set can expose a collective conflict', () => {
   const intersect = vm.runInContext('intersectAllowed', context);
   const core = vm.runInContext('minimalIncompatibleSet', context);
