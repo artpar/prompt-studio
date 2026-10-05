@@ -99,8 +99,7 @@ test('many compatible choices prompt review without claiming a conflict', () => 
 test('prompt contains only selected instruction text in branch order', () => {
   const ids = ['make-changes', 'brief-response', 'show-system-map'];
   const text = prompt(ids);
-  assert.ok(text.indexOf('Implement the requested result') < text.indexOf('Keep the final response concise'));
-  assert.ok(text.indexOf('Keep the final response concise') < text.indexOf('Show the relevant applications'));
+  assert.deepEqual(text.split('\n\n'), ids.map(id => options.find(item => item.id === id).sentences));
   assert.doesNotMatch(text, /Do what\?|Show what\?|Specific outputs|Main request/);
 });
 
