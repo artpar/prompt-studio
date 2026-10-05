@@ -160,6 +160,10 @@
       .topbar { height: 60px; padding: 0 22px; }
       .workspace { grid-template-columns: minmax(350px, 1.15fr) minmax(205px, .48fr) minmax(340px, 1fr); }
       .catalog, .selection-side, .preview-side { padding: 21px; }
+      .catalog { min-height: 0; }
+      .catalog-inner { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+      .tabs-wrap { flex: none; }
+      #tab-panel { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
       .intro { margin-bottom: 12px; font-size: .875rem; line-height: 1.5; }
       .preset-shell { display: block; margin-bottom: 13px; padding: 0 0 12px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; }
       .preset-kicker { display: block; margin-bottom: 4px; color: var(--accent); font-size: .65rem; font-weight: 800; letter-spacing: .085em; text-transform: uppercase; }
@@ -224,6 +228,8 @@
       .preset-picker-help, .preset-choice small, .preset-detail-description, .preset-detail-list li, .preset-dialog label, .preset-error { font-size: .875rem; line-height: 1.5; }
       .preset-choice strong, .preset-detail h3 { font-size: .9375rem; line-height: 1.4; }
       .preset-detail-footer a, .preset-apply, .preset-dialog-actions button { font-size: .875rem; }
+      @media (min-width: 1001px) { .app { height: 100dvh; min-height: 0; overflow: hidden; } .workspace { grid-template-rows: minmax(0, 1fr); overflow: hidden; } .catalog, .selection-side, .preview-side { overflow: hidden; } .selected-panel { position: static; height: 100%; min-height: 0; } .preview-sticky { display: flex; flex-direction: column; height: 100%; min-height: 0; } .paper { flex: 1; min-height: 0; max-height: none; } }
+      @media (max-width: 1000px) { .catalog-inner { height: auto; } #tab-panel { flex: none; max-height: min(60dvh, 600px); } }
       @media (max-width: 1000px) { .workspace { grid-template-columns: minmax(0, 1fr) 260px; } .preview-side { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); } .preview-sticky { position: static; max-width: none; } .paper { max-height: none; } .prompt-body { max-height: 540px; } }
       @media (max-width: 760px) { .workspace { grid-template-columns: 1fr; } .catalog, .preview-side { padding: 22px 20px; } .catalog-inner { max-width: none; } .selection-side { border-left: 0; border-top: 1px solid var(--line); padding: 18px 20px; } .selected-panel { position: static; height: 250px; min-height: 0; } }
       @media (max-width: 600px) { .preset-shell { grid-template-columns: 1fr; gap: 2px; } .preset-tools { justify-content: flex-start; } .preset-picker-layout { grid-template-columns: 1fr; min-height: 0; } .preset-choices { max-height: 180px; } .preset-detail-list { max-height: 180px; } }
@@ -366,6 +372,7 @@
         renderCatalogSwitch();
         renderTabs();
         renderOptions();
+        tabPanel.scrollTop = 0;
         renderSelected();
         renderPreview();
         updatePresetUI();
@@ -585,6 +592,7 @@
         activeTab = (index + activeCatalog.length) % activeCatalog.length;
         renderTabs();
         renderOptions();
+        tabPanel.scrollTop = 0;
         if (focus) document.getElementById(`tab-${activeTab}`).focus();
       }
 
